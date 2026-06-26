@@ -6,7 +6,7 @@ export type Item = {
 }
 
 export type Inventory = {
-  keys: number,
+  keys: number
   items: Item[]
 }
 

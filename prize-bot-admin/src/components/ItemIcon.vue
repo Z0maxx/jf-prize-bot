@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { defaultItemIconBdrColor, defaultItemIconBgColor, itemIconBdrColors, itemIconBgColors } from '@/constants/itemIconConstants';
-import type { Item } from '@/types';
+import {
+  defaultItemIconBdrColor,
+  defaultItemIconBgColor,
+  itemIconBdrColors,
+  itemIconBgColors,
+} from '@/constants/itemIconConstants'
+
+import type { Item } from '@/types'
 
 const { item } = defineProps<{ item: Item }>()
 const attributes: string[] = []
-item.nameParts.forEach(parts => {
+item.nameParts.forEach((parts) => {
   const attribute = parts[0]!
   if ((itemIconBgColors as Record<string, string>)[attribute]) {
     attributes.push(attribute)
@@ -23,8 +29,7 @@ if (attributes.length > 0) {
     if (attributes.length > 1) {
       bgColor = itemIconBgColors[attributes[1]!]!
     }
-  }
-  else {
+  } else {
     bgColor = itemIconBgColors[attributes[0]!]!
   }
 }
@@ -34,7 +39,10 @@ const backgroundStyle = `background-image:url(${item.iconUrl?.replace(' ', '%20'
 </script>
 
 <template>
-  <div class="h-14 w-17 border-4 relative flex items-center justify-center" v-bind:style="colorStyle">
+  <div
+    class="relative flex h-14 w-17 items-center justify-center border-4"
+    v-bind:style="colorStyle"
+  >
     <div class="size-full bg-cover bg-center" v-bind:style="backgroundStyle"></div>
   </div>
 </template>

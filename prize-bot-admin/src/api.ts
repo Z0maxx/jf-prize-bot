@@ -1,4 +1,4 @@
-import type { Inventory, Player, Prize } from "./types"
+import type { Inventory, Player, Prize } from './types'
 
 const url = 'http://localhost:6520'
 
@@ -16,8 +16,8 @@ async function post(endpoint: string, value: any) {
     method: 'POST',
     body: JSON.stringify(value),
     headers: {
-      'Content-Type': 'application/json'
-    }
+      'Content-Type': 'application/json',
+    },
   })
 }
 
@@ -44,5 +44,5 @@ export const api = {
 
   async savePrizes(prizes: Prize[]) {
     return post('/prizes', prizes)
-  }
+  },
 }

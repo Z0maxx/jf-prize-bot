@@ -1,7 +1,9 @@
-import { api } from "@/api";
-import type { Inventory } from "@/types";
-import { defineStore } from "pinia";
-import { reactive } from "vue";
+import { defineStore } from 'pinia'
+import { reactive } from 'vue'
+
+import { api } from '@/api'
+
+import type { Inventory } from '@/types'
 
 export const useInventoryStore = defineStore('inventoryStore', () => {
   const inventory = reactive<Inventory>({
@@ -21,6 +23,6 @@ export const useInventoryStore = defineStore('inventoryStore', () => {
   return {
     inventory,
     setInventory,
-    loadAsync
+    loadAsync,
   }
 })

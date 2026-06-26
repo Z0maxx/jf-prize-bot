@@ -1,8 +1,4 @@
-export const killstreakRanks = [
-  'Killstreak',
-  'Specialized Killstreak',
-  'Professional Killstreak'
-]
+export const killstreakRanks = ['Killstreak', 'Specialized Killstreak', 'Professional Killstreak']
 
 export const killstreakColors: Record<string, string> = {
   Killstreak: 'var(--color-pink-600)',

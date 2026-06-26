@@ -1,5 +1,5 @@
-import { defineStore } from "pinia";
-import { reactive, readonly } from "vue";
+import { defineStore } from 'pinia'
+import { reactive, readonly } from 'vue'
 
 export const useAppStore = defineStore('appStore', () => {
   const isLoading = reactive(new Set<string>())
@@ -39,6 +39,6 @@ export const useAppStore = defineStore('appStore', () => {
     addIsSaving,
     removeIsSaving,
     addHasChanges,
-    removeHasChanges
+    removeHasChanges,
   }
 })

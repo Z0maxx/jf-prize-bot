@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import DisplayItem from '@/components/DisplayItem.vue'
-import KeyStock from '@/components/KeyStock.vue'
-import Title from '@/components/Title.vue'
+import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+
 import { useAppStore } from '@/stores/app'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePrizeStore } from '@/stores/prize'
-import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
+
+import DisplayItem from '@/components/DisplayItem.vue'
+import KeyStock from '@/components/KeyStock.vue'
+import Title from '@/components/Title.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isLoading } = storeToRefs(appStore)
@@ -17,22 +19,20 @@ const { inventory } = storeToRefs(inventoryStore)
 const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
 
-const isPageReady = computed(() =>
-  isLoading &&
-  !isLoading.value.has(prizeStore.at))
+const isPageReady = computed(() => isLoading && !isLoading.value.has(prizeStore.at))
 
-const prizesWithItems = computed(() => prizes
-  .value
-  .filter(prize => prize.keys > 0 || prize.assetIds.length > 0)
-  .map(prize => {
-    const items = inventory.value.items.filter(item => prize.assetIds.includes(item.assetId))
-    return {
-      player: prize.player,
-      keys: prize.keys,
-      items
-    }
-  }))
-
+const prizesWithItems = computed(() =>
+  prizes.value
+    .filter((prize) => prize.keys > 0 || prize.assetIds.length > 0)
+    .map((prize) => {
+      const items = inventory.value.items.filter((item) => prize.assetIds.includes(item.assetId))
+      return {
+        player: prize.player,
+        keys: prize.keys,
+        items,
+      }
+    }),
+)
 </script>
 <template>
   <Title :text-size="'2xl'">Overview of Prizes</Title>

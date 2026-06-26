@@ -20,5 +20,5 @@ export const itemNameColors: Record<string, string> = {
   '(Well-Worn)': 'var(--color-lime-900)',
   '(Field-Tested)': 'var(--color-lime-800)',
   '(Minimal Wear)': 'var(--color-lime-700)',
-  '(Factory New)': 'var(--color-lime-600)'
+  '(Factory New)': 'var(--color-lime-600)',
 }

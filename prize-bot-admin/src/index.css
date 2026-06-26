@@ -1,12 +1,12 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @theme {
-  --color-strange: rgb(137.9901185771,70.004743083,32.3098814229);
-  --color-unusual: rgb(87.8976190476,52.4761904762,112.8238095238);
-  --color-genuine: rgb(42.4098445596,63.8901554404,46.8160621762);
-  --color-vintage: rgb(42.5013888889,58.6638888889,86.7986111111);
-  --color-collectors: rgb(95.3,0,0);
+  --color-strange: rgb(137.9901185771, 70.004743083, 32.3098814229);
+  --color-unusual: rgb(87.8976190476, 52.4761904762, 112.8238095238);
+  --color-genuine: rgb(42.4098445596, 63.8901554404, 46.8160621762);
+  --color-vintage: rgb(42.5013888889, 58.6638888889, 86.7986111111);
+  --color-collectors: rgb(95.3, 0, 0);
 }
 
 button:not(:disabled) {
-  cursor: pointer
+  cursor: pointer;
 }

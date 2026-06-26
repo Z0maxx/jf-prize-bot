@@ -1,5 +1,38 @@
 {
   "$schema": "./node_modules/oxfmt/configuration_schema.json",
   "semi": false,
-  "singleQuote": true
+  "singleQuote": true,
+  "sortImports": {
+    "newlinesBetween": true,
+    "customGroups": [
+      {
+        "groupName": "vue-components",
+        "elementNamePattern": [
+          "**/*.vue"
+        ]
+      }
+    ],
+    "groups": [
+      [
+        "value-builtin",
+        "value-external"
+      ],
+      "value-internal",
+      [
+        "value-parent",
+        "value-sibling",
+        "value-index"
+      ],
+      "unknown",
+      "vue-components"
+    ]
+  },
+  "sortTailwindcss": {
+    "stylesheet": "./src/index.css",
+    "functions": [
+      "clsx",
+      "cn"
+    ],
+    "preserveWhitespace": true
+  }
 }

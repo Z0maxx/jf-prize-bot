@@ -1,8 +1,11 @@
-import { api } from "@/api";
-import type { Player } from "@/types";
-import { defineStore } from "pinia";
-import { ref } from "vue";
-import { useAppStore } from "./app";
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+
+import { api } from '@/api'
+
+import { useAppStore } from './app'
+
+import type { Player } from '@/types'
 
 export const usePlayerStore = defineStore('playerStore', () => {
   const players = ref<Player[]>([])
@@ -44,6 +47,6 @@ export const usePlayerStore = defineStore('playerStore', () => {
     addPlayer,
     removePlayer,
     loadAsync,
-    saveAsync
+    saveAsync,
   }
 })

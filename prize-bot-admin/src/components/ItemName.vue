@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { itemNameColors } from '@/constants/itemNameConstants';
-import type { Item } from '@/types';
+import { itemNameColors } from '@/constants/itemNameConstants'
+
+import type { Item } from '@/types'
 
 const { item } = defineProps<{ item: Item }>()
 const itemName = item.nameParts
-  .map(parts => {
+  .map((parts) => {
     const attributeColor = itemNameColors[parts[0]!]
     if (attributeColor) {
       const style = `color: ${attributeColor}`

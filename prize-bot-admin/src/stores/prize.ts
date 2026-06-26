@@ -1,22 +1,24 @@
-import { api } from "@/api";
-import type { Item, Player, Prize } from "@/types";
-import { defineStore } from "pinia";
-import { readonly, ref } from "vue";
-import { useAppStore } from "./app";
-import { useInventoryStore } from "./inventory";
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
 
+import { api } from '@/api'
+
+import { useAppStore } from './app'
+import { useInventoryStore } from './inventory'
+
+import type { Item, Player, Prize } from '@/types'
 
 export const usePrizeStore = defineStore('prizeStore', () => {
   const prizes = ref<Prize[]>([])
   const at = 'Prizes'
 
   function getPrizeForPlayer(player: Player) {
-    let prize = prizes.value.find(prize => prize.player.name === player.name)
+    let prize = prizes.value.find((prize) => prize.player.name === player.name)
     if (!prize) {
       prize = {
         player,
         assetIds: [],
-        keys: 0
+        keys: 0,
       }
 
       prizes.value.push(prize)
@@ -27,7 +29,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
   }
 
   function removePrizeForPlayer(player: Player) {
-    const idx = prizes.value.findIndex(prize => prize.player.name === player.name)
+    const idx = prizes.value.findIndex((prize) => prize.player.name === player.name)
     if (idx > -1) {
       prizes.value.splice(idx, 1)
       const { addHasChanges } = useAppStore()
@@ -67,14 +69,14 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
     addIsSaving(at)
     const { inventory } = useInventoryStore()
-    const assetIds = inventory.items.map(item => item.assetId)
-    prizes.value.forEach(prize => {
-      prize.assetIds = prize.assetIds.filter(assetId => assetIds.includes(assetId))
+    const assetIds = inventory.items.map((item) => item.assetId)
+    prizes.value.forEach((prize) => {
+      prize.assetIds = prize.assetIds.filter((assetId) => assetIds.includes(assetId))
     })
 
-    const filteredPrizes = prizes.value.filter(prize =>
-      prize.keys > 0 ||
-      prize.assetIds.length > 0)
+    const filteredPrizes = prizes.value.filter(
+      (prize) => prize.keys > 0 || prize.assetIds.length > 0,
+    )
 
     await api.savePrizes(filteredPrizes)
     removeHasChanges(at)
@@ -96,6 +98,6 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     removePrizeForPlayer,
     loadAsync,
     saveAsync,
-    clearAsync
+    clearAsync,
   }
 })
