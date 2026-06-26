@@ -1,0 +1,101 @@
+import { api } from "@/api";
+import type { Item, Player, Prize } from "@/types";
+import { defineStore } from "pinia";
+import { readonly, ref } from "vue";
+import { useAppStore } from "./app";
+import { useInventoryStore } from "./inventory";
+
+
+export const usePrizeStore = defineStore('prizeStore', () => {
+  const prizes = ref<Prize[]>([])
+  const at = 'Prizes'
+
+  function getPrizeForPlayer(player: Player) {
+    let prize = prizes.value.find(prize => prize.player.name === player.name)
+    if (!prize) {
+      prize = {
+        player,
+        assetIds: [],
+        keys: 0
+      }
+
+      prizes.value.push(prize)
+      return prize
+    }
+
+    return prize
+  }
+
+  function removePrizeForPlayer(player: Player) {
+    const idx = prizes.value.findIndex(prize => prize.player.name === player.name)
+    if (idx > -1) {
+      prizes.value.splice(idx, 1)
+      const { addHasChanges } = useAppStore()
+      addHasChanges(at)
+    }
+  }
+
+  function setKeysForPrize(prize: ReturnType<typeof getPrizeForPlayer>, keys: number) {
+    prize.keys = keys
+    const { addHasChanges } = useAppStore()
+    addHasChanges(at)
+  }
+
+  function addItemToPrize(prize: Prize, item: Item) {
+    prize.assetIds.push(item.assetId)
+    const { addHasChanges } = useAppStore()
+    addHasChanges(at)
+  }
+
+  function removeItemFromPrize(prize: Prize, item: Item) {
+    const idx = prize.assetIds.indexOf(item.assetId)
+    if (idx > -1) {
+      prize.assetIds.splice(idx, 1)
+      const { addHasChanges } = useAppStore()
+      addHasChanges(at)
+    }
+  }
+
+  async function loadAsync() {
+    const { addIsLoading, removeIsLoading } = useAppStore()
+    addIsLoading(at)
+    prizes.value = await api.getPrizes()
+    removeIsLoading(at)
+  }
+
+  async function saveAsync() {
+    const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
+    addIsSaving(at)
+    const { inventory } = useInventoryStore()
+    const assetIds = inventory.items.map(item => item.assetId)
+    prizes.value.forEach(prize => {
+      prize.assetIds = prize.assetIds.filter(assetId => assetIds.includes(assetId))
+    })
+
+    const filteredPrizes = prizes.value.filter(prize =>
+      prize.keys > 0 ||
+      prize.assetIds.length > 0)
+
+    await api.savePrizes(filteredPrizes)
+    removeHasChanges(at)
+    removeIsSaving(at)
+  }
+
+  async function clearAsync() {
+    prizes.value = []
+    await saveAsync()
+  }
+
+  return {
+    at,
+    prizes,
+    getPrizeForPlayer,
+    setKeysForPrize,
+    addItemToPrize,
+    removeItemFromPrize,
+    removePrizeForPlayer,
+    loadAsync,
+    saveAsync,
+    clearAsync
+  }
+})
