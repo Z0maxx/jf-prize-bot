@@ -40,22 +40,24 @@ app.get('/prizes', async (_, res) => {
 })
 
 app.post('/players', async (req, res) => {
-  if (PrizesSchema.safeParse(req.body).success) {
+  const parsed = PlayersSchema.safeParse(req.body)
+  if (parsed.success) {
     await savePlayersAsync(req.body)
     res.status(201).send()
   }
   else {
-    res.status(400).send()
+    res.status(400).send(parsed.error)
   }
 })
 
 app.post('/prizes', async (req, res) => {
-  if (PlayersSchema.safeParse(req.body)) {
+  const parsed = PrizesSchema.safeParse(req.body)
+  if (parsed.success) {
     await savePrizesAsync(req.body)
     res.status(201).send()
   }
   else {
-    res.status(400).send()
+    res.status(400).send(parsed.error)
   }
 })
 
