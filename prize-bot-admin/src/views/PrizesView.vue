@@ -13,7 +13,6 @@ import type { Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
 import SaveButton from '@/components/SaveButton.vue'
-import Title from '@/components/Title.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isLoading, isSaving } = storeToRefs(appStore)
@@ -118,7 +117,7 @@ onBeforeRouteLeave(() => {
 </script>
 <template>
   <div class="flex flex-col items-center" v-if="isPageReady">
-    <Title v-if="players.length === 0">There are no players</Title>
+    <h1 v-if="players.length === 0">There are no players</h1>
     <div
       v-else
       class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
@@ -148,7 +147,7 @@ onBeforeRouteLeave(() => {
       </select>
     </div>
     <template v-if="selectedPlayerName">
-      <Title>Keys</Title>
+      <h2>Keys</h2>
       <KeyStock />
       <div class="mt-2">
         <label for="keys" class="mr-2">Keys assigned to {{ selectedPlayerName }}:</label>
@@ -160,7 +159,7 @@ onBeforeRouteLeave(() => {
         />
       </div>
       <template v-if="sortedItems.assignedItems.length > 0">
-        <Title>Items assigned to {{ selectedPlayerName }}</Title>
+        <h3>Items assigned to {{ selectedPlayerName }}</h3>
         <div
           v-for="item in sortedItems.assignedItems"
           :key="item.assetId"
@@ -170,7 +169,7 @@ onBeforeRouteLeave(() => {
           <DisplayItem :item="item" />
         </div>
       </template>
-      <Title>Unassigned Items</Title>
+      <h3>Unassigned Items</h3>
       <div
         v-for="item in sortedItems.unassignedItems"
         :key="item.assetId"

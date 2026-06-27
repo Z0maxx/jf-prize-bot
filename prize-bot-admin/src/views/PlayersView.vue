@@ -11,7 +11,6 @@ import { usePrizeStore } from '@/stores/prize'
 import MinusButton from '@/components/MinusButton.vue'
 import PlusButton from '@/components/PlusButton.vue'
 import SaveButton from '@/components/SaveButton.vue'
-import Title from '@/components/Title.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
@@ -111,7 +110,7 @@ onBeforeRouteLeave(() => {
         >Save {{ savingAt }}</SaveButton
       >
     </div>
-    <Title>New Player</Title>
+    <h3>New Player</h3>
     <div class="overflow-auto">
       <table class="w-236 table-fixed">
         <thead>
@@ -153,7 +152,7 @@ onBeforeRouteLeave(() => {
         </tbody>
       </table>
     </div>
-    <Title>Players</Title>
+    <h3>Players</h3>
     <div class="overflow-auto">
       <table class="w-236 table-fixed border-1 border-black bg-white">
         <tbody class="divide-y divide-gray-400">
