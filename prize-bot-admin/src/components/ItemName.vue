@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { itemNameColors } from '@/constants/itemNameConstants'
 
-import type { Item } from '@/types'
+import type { UniqueItem } from '@jf-prize-bot/schema'
 
-const { item } = defineProps<{ item: Item }>()
+const { item } = defineProps<{ item: UniqueItem }>()
 const itemName = item.nameParts
   .map((parts) => {
     const attributeColor = itemNameColors[parts[0]!]

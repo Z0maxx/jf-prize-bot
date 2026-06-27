@@ -1,13 +1,7 @@
 import { categoryNames } from "./inventory/categoryNames"
 import { descriptionValues } from "./inventory/descriptionValues"
 import { tagNames } from "./inventory/tagNames"
-
-export type UniqueItem = {
-  nameParts: string[][]
-  assetId: number | string
-  iconUrl: string
-  unusualIconUrl?: string
-}
+import { Player, Prize, UniqueItem } from "@jf-prize-bot/schema"
 
 export type CommonItem = {
   name: string
@@ -68,17 +62,6 @@ export type InventoryResponse = {
 export type Inventory = {
   keys: number,
   items: UniqueItem[]
-}
-
-export type Player = {
-  tradeUrl: string
-  name: string
-}
-
-export type Prize = {
-  player: Player
-  assetIds: string[]
-  keys: number
 }
 
 export type TournamentInfo = {

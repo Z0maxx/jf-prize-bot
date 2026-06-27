@@ -5,7 +5,7 @@ import { api } from '@/api'
 
 import { useAppStore } from './app'
 
-import type { Player } from '@/types'
+import type { Player } from '@jf-prize-bot/schema'
 
 export const usePlayerStore = defineStore('playerStore', () => {
   const players = ref<Player[]>([])

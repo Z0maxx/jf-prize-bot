@@ -1,10 +1,17 @@
-import { getListFromSheetAsync, saveListToSheetAsync, sheets, spreadsheetId } from "./sheets";
-import { Prize } from "./types";
+import { Prize } from "@jf-prize-bot/schema";
+import { getListFromSheetAsync, saveListToSheetAsync } from "./sheets";
 
+const sheetName = 'Prizes'
 export async function savePrizesAsync(prizes: Prize[]) {
-  saveListToSheetAsync('Prizes', 'A', prizes)
+  saveListToSheetAsync(sheetName, 'A', prizes)
 }
 
 export async function getPrizesAsync(): Promise<Prize[]> {
-  return getListFromSheetAsync<Prize>('Prizes', 'A')
+  return getListFromSheetAsync<Prize>(sheetName, 'A')
+}
+
+function validatePrizes(prizes: Prize[]) {
+  prizes.forEach(prize => {
+
+  })
 }

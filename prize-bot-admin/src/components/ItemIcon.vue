@@ -6,9 +6,9 @@ import {
   itemIconBgColors,
 } from '@/constants/itemIconConstants'
 
-import type { Item } from '@/types'
+import type { UniqueItem } from '@jf-prize-bot/schema'
 
-const { item } = defineProps<{ item: Item }>()
+const { item } = defineProps<{ item: UniqueItem }>()
 const attributes: string[] = []
 item.nameParts.forEach((parts) => {
   const attribute = parts[0]!

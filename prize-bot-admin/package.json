@@ -1,5 +1,5 @@
 {
-  "name": "prize-bot-admin",
+  "name": "@jf-prize-bot/prize-bot-admin",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -16,6 +16,7 @@
     "format": "oxfmt src/"
   },
   "dependencies": {
+    "@jf-prize-bot/schema": "file:../schema/",
     "pinia": "^3.0.4",
     "vue": "^3.5.32",
     "vue-router": "^5.1.0"

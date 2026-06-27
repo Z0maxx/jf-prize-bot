@@ -1,4 +1,4 @@
-import type { Inventory, Player, Prize } from './types'
+import type { Inventory, Player, Prize } from '@jf-prize-bot/schema'
 
 const url = 'http://localhost:6520'
 

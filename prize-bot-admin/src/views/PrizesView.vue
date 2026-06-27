@@ -8,7 +8,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
 
-import type { Item, Player, Prize } from '@/types.ts'
+import type { Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
@@ -34,7 +34,7 @@ let selectedPlayer: Player | null
 const keys = ref(0)
 const selectedPlayerName = ref('')
 
-const sortedItems = reactive<{ assignedItems: Item[]; unassignedItems: Item[] }>({
+const sortedItems = reactive<{ assignedItems: UniqueItem[]; unassignedItems: UniqueItem[] }>({
   assignedItems: [],
   unassignedItems: [],
 })
@@ -43,7 +43,7 @@ const isPageReady = computed(
   () => isLoading && !isLoading.value.has(playerStore.at) && !isLoading.value.has(prizeStore.at),
 )
 
-function tryAddItemToPrize(item: Item) {
+function tryAddItemToPrize(item: UniqueItem) {
   if (!selectedPlayer || !selectedPrize) return
 
   addItemToPrize(selectedPrize, item)
@@ -52,7 +52,7 @@ function tryAddItemToPrize(item: Item) {
   sortedItems.unassignedItems.splice(idx, 1)
 }
 
-function tryRemoveItemFromPrize(item: Item) {
+function tryRemoveItemFromPrize(item: UniqueItem) {
   if (!selectedPlayer || !selectedPrize) return
 
   removeItemFromPrize(selectedPrize, item)

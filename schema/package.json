@@ -1,0 +1,6 @@
+{
+  "name": "@jf-prize-bot/schema",
+  "version": "1.0.0",
+  "main": "./schema.ts",
+  "types": "./schema.ts"
+}

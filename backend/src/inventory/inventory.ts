@@ -1,10 +1,11 @@
 import { categoryNames } from "./categoryNames"
 import { descriptionValues } from "./descriptionValues"
 import { grades } from "./grades"
-import { getListFromSheetAsync, saveListToSheetAsync, sheets, spreadsheetId } from "../sheets"
+import { getListFromSheetAsync, saveListToSheetAsync } from "../sheets"
 import { tagNames } from "./tagNames"
-import type { CategoryName, DescriptionValue, Inventory, InventoryResponse, Item, SkinName, TagName, UniqueItem } from "../types"
+import type { CategoryName, DescriptionValue, Inventory, InventoryResponse, Item, SkinName, TagName } from "../types"
 import "dotenv/config"
+import { UniqueItem } from "@jf-prize-bot/schema"
 
 const keyClassId = '101785959'
 const botUserId = process.env.BOT_USER_ID

@@ -1,4 +1,4 @@
-import credentials from "./google-cloud-creds.json"
+import credentials from "../google-cloud-creds.json"
 import { google } from "googleapis"
 import "dotenv/config"
 

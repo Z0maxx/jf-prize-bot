@@ -1,0 +1,6 @@
+{
+  "name": "jf-prize-bot",
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

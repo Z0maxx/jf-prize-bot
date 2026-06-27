@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { tradeUrlRegex, type Player } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 import { computed, reactive, ref } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
@@ -6,8 +7,6 @@ import { onBeforeRouteLeave } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
-
-import type { Player } from '@/types'
 
 import MinusButton from '@/components/MinusButton.vue'
 import PlusButton from '@/components/PlusButton.vue'
@@ -59,12 +58,7 @@ function setTradeUrlErrors() {
     tradeUrlErrors.push(`The Player "${sameTradeUrl.name}" already has this Trade Url`)
   }
 
-  if (
-    tradeUrlValue &&
-    !tradeUrlValue.match(
-      /https?:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=(\d+)&token=([a-zA-Z0-9_-]+)/,
-    )
-  ) {
+  if (tradeUrlValue && !tradeUrlValue.match(tradeUrlRegex)) {
     tradeUrlErrors.push(
       'Trade Url must be in the following format: https://steamcommunity.com/tradeoffer/new/?partner=<partner>&token=<token>',
     )

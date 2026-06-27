@@ -3,7 +3,7 @@ import { reactive } from 'vue'
 
 import { api } from '@/api'
 
-import type { Inventory } from '@/types'
+import type { Inventory } from '@jf-prize-bot/schema'
 
 export const useInventoryStore = defineStore('inventoryStore', () => {
   const inventory = reactive<Inventory>({

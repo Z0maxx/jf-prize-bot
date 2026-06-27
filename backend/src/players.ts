@@ -1,10 +1,11 @@
-import { getListFromSheetAsync, saveListToSheetAsync, sheets, spreadsheetId } from "./sheets";
-import { Player } from "./types";
+import { Player } from "@jf-prize-bot/schema";
+import { getListFromSheetAsync, saveListToSheetAsync } from "./sheets";
 
+const sheetName = 'Players'
 export async function savePlayersAsync(players: Player[]) {
-  await saveListToSheetAsync('Players', 'A', players)
+  await saveListToSheetAsync(sheetName, 'A', players)
 }
 
 export async function getPlayersAsync(): Promise<Player[]> {
-  return getListFromSheetAsync<Player>('Players', 'A')
+  return getListFromSheetAsync<Player>(sheetName, 'A')
 }

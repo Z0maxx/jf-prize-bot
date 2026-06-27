@@ -3,6 +3,11 @@ import { getInventoryAsync, reloadInventoryAsync } from "./inventory/inventory"
 import "dotenv/config"
 import { getPlayersAsync, savePlayersAsync } from "./players"
 import { getPrizesAsync, savePrizesAsync } from "./prizes"
+import { z } from "zod"
+import { PlayerSchema, PrizeSchema } from "@jf-prize-bot/schema"
+
+const PrizesSchema = z.array(PrizeSchema)
+const PlayersSchema = z.array(PlayerSchema)
 
 const app = express()
 app.use(express.json())
@@ -35,13 +40,23 @@ app.get('/prizes', async (_, res) => {
 })
 
 app.post('/players', async (req, res) => {
-  await savePlayersAsync(req.body)
-  res.status(201).send()
+  if (PrizesSchema.safeParse(req.body).success) {
+    await savePlayersAsync(req.body)
+    res.status(201).send()
+  }
+  else {
+    res.status(400).send()
+  }
 })
 
 app.post('/prizes', async (req, res) => {
-  await savePrizesAsync(req.body)
-  res.status(201).send()
+  if (PlayersSchema.safeParse(req.body)) {
+    await savePrizesAsync(req.body)
+    res.status(201).send()
+  }
+  else {
+    res.status(400).send()
+  }
 })
 
 app.listen(6520, () => console.log('Running'))

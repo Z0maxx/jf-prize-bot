@@ -6,7 +6,7 @@ import { api } from '@/api'
 import { useAppStore } from './app'
 import { useInventoryStore } from './inventory'
 
-import type { Item, Player, Prize } from '@/types'
+import type { Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 
 export const usePrizeStore = defineStore('prizeStore', () => {
   const prizes = ref<Prize[]>([])
@@ -43,13 +43,13 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     addHasChanges(at)
   }
 
-  function addItemToPrize(prize: Prize, item: Item) {
+  function addItemToPrize(prize: Prize, item: UniqueItem) {
     prize.assetIds.push(item.assetId)
     const { addHasChanges } = useAppStore()
     addHasChanges(at)
   }
 
-  function removeItemFromPrize(prize: Prize, item: Item) {
+  function removeItemFromPrize(prize: Prize, item: UniqueItem) {
     const idx = prize.assetIds.indexOf(item.assetId)
     if (idx > -1) {
       prize.assetIds.splice(idx, 1)
