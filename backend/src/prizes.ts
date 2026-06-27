@@ -9,9 +9,3 @@ export async function savePrizesAsync(prizes: Prize[]) {
 export async function getPrizesAsync(): Promise<Prize[]> {
   return getListFromSheetAsync<Prize>(sheetName, 'A')
 }
-
-function validatePrizes(prizes: Prize[]) {
-  prizes.forEach(prize => {
-
-  })
-}
