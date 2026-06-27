@@ -2,5 +2,12 @@
   "name": "jf-prize-bot",
   "dependencies": {
     "zod": "^4.4.3"
+  },
+  "scripts": {
+    "start": "concurrently \"npm run build --prefix ./backend &&  npm run start --prefix ./backend\" \"npm run build --prefix ./prize-bot-admin && serve prize-bot-admin/dist/ -p 6521\""
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "serve": "^14.2.6"
   }
 }
