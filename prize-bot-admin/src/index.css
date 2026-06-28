@@ -28,3 +28,8 @@ h2 {
 h3 {
   @apply text-lg
 }
+
+input,
+select {
+  @apply rounded-md border-2 border-sky-400 bg-sky-200 py-0.5 px-1 focus:outline-sky-700
+}

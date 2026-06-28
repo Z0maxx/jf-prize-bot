@@ -12,6 +12,10 @@ export const usePrizeStore = defineStore('prizeStore', () => {
   const prizes = ref<Prize[]>([])
   const at = 'Prizes'
 
+  function setPrizes(newPrizes: Prize[]) {
+    prizes.value = newPrizes
+  }
+
   function getPrizeForPlayer(player: Player) {
     let prize = prizes.value.find((prize) => prize.player.name === player.name)
     if (!prize) {
@@ -91,6 +95,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
   return {
     at,
     prizes,
+    setPrizes,
     getPrizeForPlayer,
     setKeysForPrize,
     addItemToPrize,

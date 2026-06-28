@@ -12,7 +12,8 @@ import type { Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
-import SaveButton from '@/components/SaveButton.vue'
+import SubmitButton from '@/components/SubmitButton.vue'
+import TradeOfferDetails from '@/components/TradeOfferDetails.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isLoading, isSaving } = storeToRefs(appStore)
@@ -95,7 +96,7 @@ watch(
   { deep: true },
 )
 
-watch(keys, (newKeys) => {
+watch(keys, newKeys => {
   if (!selectedPrize) {
     return
   }
@@ -123,12 +124,12 @@ onBeforeRouteLeave(() => {
       class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
     >
       <div class="flex w-180 gap-4">
-        <SaveButton
+        <SubmitButton
           @click="prizeStore.saveAsync"
           :disabled="!hasChanges.has(prizeStore.at)"
-          :is-saving="isSaving.has(prizeStore.at)"
+          :is-submitting="isSaving.has(prizeStore.at)"
           class="w-full"
-          >Save Prizes</SaveButton
+          >Save Prizes</SubmitButton
         >
         <button
           @click="tryClearPrizes"
@@ -140,13 +141,14 @@ onBeforeRouteLeave(() => {
       </div>
       <select
         v-model="selectedPlayerName"
-        class="mt-4 rounded-md border-2 border-sky-400 bg-sky-200 py-0.5 focus:outline-sky-700"
+        class="mt-4"
       >
         <option value="" disabled hidden>Select a Player</option>
         <option v-for="player in players" :value="player.name">{{ player.name }}</option>
       </select>
     </div>
     <template v-if="selectedPlayerName">
+      <TradeOfferDetails v-if="selectedPrize" :trade-offer="selectedPrize.tradeOffer"></TradeOfferDetails>
       <h2>Keys</h2>
       <KeyStock />
       <div class="mt-2">
@@ -155,7 +157,7 @@ onBeforeRouteLeave(() => {
           v-model="keys"
           type="number"
           id="keys"
-          class="w-15 rounded-md border-2 border-sky-400 bg-sky-200 py-0.5 pl-1 focus:outline-sky-700"
+          class="w-15"
         />
       </div>
       <template v-if="sortedItems.assignedItems.length > 0">
@@ -164,9 +166,10 @@ onBeforeRouteLeave(() => {
           v-for="item in sortedItems.assignedItems"
           :key="item.assetId"
           @click="tryRemoveItemFromPrize(item)"
-          class="flex w-180 cursor-pointer items-center justify-between hover:bg-rose-200"
+          class="flex w-180 cursor-pointer items-center justify-between hover:bg-rose-200 relative"
         >
           <DisplayItem :item="item" />
+          <div class="text-xs absolute right-0 top-1 text-gray-500">Asset id: {{ item.assetId }}</div>
         </div>
       </template>
       <h3>Unassigned Items</h3>
@@ -174,9 +177,10 @@ onBeforeRouteLeave(() => {
         v-for="item in sortedItems.unassignedItems"
         :key="item.assetId"
         @click="tryAddItemToPrize(item)"
-        class="flex w-180 cursor-pointer items-center justify-between hover:bg-emerald-200"
+        class="flex w-180 cursor-pointer items-center justify-between hover:bg-emerald-200 relative"
       >
         <DisplayItem :item="item" />
+        <div class="text-xs absolute right-0 top-1 text-gray-500">Asset id: {{ item.assetId }}</div>
       </div>
     </template>
   </div>

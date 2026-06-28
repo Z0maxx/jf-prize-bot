@@ -10,7 +10,7 @@ import { usePrizeStore } from '@/stores/prize'
 
 import MinusButton from '@/components/MinusButton.vue'
 import PlusButton from '@/components/PlusButton.vue'
-import SaveButton from '@/components/SaveButton.vue'
+import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
@@ -102,12 +102,12 @@ onBeforeRouteLeave(() => {
     <div
       class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
     >
-      <SaveButton
+      <SubmitButton
         @click="save"
         :disabled="!hasChanges.has(playerStore.at)"
-        :is-saving="isPageSaving"
+        :is-submitting="isPageSaving"
         class="w-236"
-        >Save {{ savingAt }}</SaveButton
+        >Save {{ savingAt }}</SubmitButton
       >
     </div>
     <h3>New Player</h3>
@@ -131,9 +131,7 @@ onBeforeRouteLeave(() => {
           </tr>
         </thead>
         <tbody>
-          <tr
-            class="[&_input]:rounded-md [&_input]:border-2 [&_input]:border-sky-400 [&_input]:bg-sky-200 [&_input]:py-0.5 [&_input]:pl-1 [&_input]:focus:outline-sky-700"
-          >
+          <tr>
             <td><input v-model="name" id="name" class="min-w-50" /></td>
             <td><input v-model="tradeUrl" id="tradeUrl" class="min-w-168" /></td>
             <td>

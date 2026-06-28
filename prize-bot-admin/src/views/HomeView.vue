@@ -8,6 +8,7 @@ import { usePrizeStore } from '@/stores/prize'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
+import TradeOfferDetails from '@/components/TradeOfferDetails.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isLoading } = storeToRefs(appStore)
@@ -28,6 +29,7 @@ const prizesWithItems = computed(() =>
       return {
         player: prize.player,
         keys: prize.keys,
+        tradeOffer: prize.tradeOffer,
         items,
       }
     }),
@@ -39,10 +41,14 @@ const prizesWithItems = computed(() =>
     <KeyStock />
     <div v-for="prize in prizesWithItems" :key="prize.player.name">
       <h2>Prizes for {{ prize.player.name }}</h2>
+      <TradeOfferDetails v-if="prize" :trade-offer="prize.tradeOffer"></TradeOfferDetails>
       <div class="text-center">Keys assigned to {{ prize.player.name }}: {{ prize.keys }}</div>
       <template v-if="prize.items.length > 0">
         <h3>Items assigned to {{ prize.player.name }}</h3>
-        <DisplayItem v-for="item in prize.items" :key="item.assetId" :item="item" class="w-180" />
+        <div v-for="item in prize.items" :key="item.assetId" class="relative w-180">
+          <DisplayItem  :item="item" class="w-180" />
+          <div class="text-xs absolute right-0 top-1 text-gray-500">Asset id: {{ item.assetId }}</div>
+        </div>
       </template>
     </div>
   </div>

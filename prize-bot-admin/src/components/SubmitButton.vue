@@ -1,5 +1,5 @@
 <script setup lang="ts">
-defineProps<{ isSaving: boolean }>()
+defineProps<{ isSubmitting: boolean }>()
 </script>
 
 <template>
@@ -9,7 +9,7 @@ defineProps<{ isSaving: boolean }>()
     <span class="relative">
       <span><slot></slot></span>
       <svg
-        v-if="isSaving"
+        v-if="isSubmitting"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 16 16"
         class="absolute top-0 -right-10 size-7 animate-spin"

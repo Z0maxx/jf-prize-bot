@@ -7,7 +7,7 @@ import type { CategoryName, DescriptionValue, Inventory, InventoryResponse, Item
 import "dotenv/config"
 import { UniqueItem } from "@jf-prize-bot/schema"
 
-const keyClassId = '101785959'
+export const keyClassId = process.env.USE_SCRAP_AS_KEY ? '2675' : '101785959'
 const botUserId = process.env.BOT_USER_ID
 
 export async function getInventoryAsync(): Promise<Inventory> {

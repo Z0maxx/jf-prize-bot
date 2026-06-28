@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 
 import { api } from './api.ts'
 import { useAppStore } from './stores/app.ts'
@@ -9,9 +9,13 @@ import { usePlayerStore } from './stores/player.ts'
 import { usePrizeStore } from './stores/prize.ts'
 
 import NavbarButton from './components/NavbarButton.vue'
+import LoginPopup from './components/LoginPopup.vue'
+import { sendPrizesKnownError } from '@jf-prize-bot/schema'
+
+let steamActionAfterLogin: (() => any) | null = null
 
 const appStore = useAppStore()
-const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
+const { hasChanges, isLoggedIn } = storeToRefs(appStore)
 
 const inventoryStore = useInventoryStore()
 const { setInventory } = inventoryStore
@@ -31,16 +35,61 @@ async function reloadBotInventory() {
   }
 }
 
+async function sendPrizesAsync() {
+  appStore.setIsSendingPrizes(true)
+  const result = await api.sendPrizes()
+  appStore.setIsSendingPrizes(false)
+  if (result.success) {
+    prizeStore.setPrizes(result.prizesWithTradeOffers!)
+    return
+  }
+
+  if (result.error === sendPrizesKnownError.notLoggedIn) {
+    appStore.setIsLoggedIn(false)
+    trySendPrizes()
+  }
+  else if (result.error === sendPrizesKnownError.notEnoughKeys) {
+    alert('There are not enough keys in the inventory')
+  }
+  else if (result.error === sendPrizesKnownError.itemsNotFound) {
+    alert('Items not found with asset ids:\n' + result.itemsNotFound?.join('\n'))
+  }
+  else if (result.error === sendPrizesKnownError.errorsWithTradeOffer) {
+    prizeStore.setPrizes(result.prizesWithTradeOffers!)
+    alert('There are failed trade offers')
+  }
+}
+
+async function trySendPrizes() {
+  if (!isLoggedIn.value) {
+    appStore.setIsLoginPopupOpened(true)
+    steamActionAfterLogin = sendPrizesAsync
+  }
+  else {
+    sendPrizesAsync()
+  }
+}
+
 onMounted(async () => {
   inventoryStore.loadAsync()
   playerStore.loadAsync()
   prizeStore.loadAsync()
+  appStore.setIsLoggedIn(await api.isLoggedIn())
 })
 
 window.addEventListener('beforeunload', (e) => {
   if (hasChanges.value.size > 0) {
     e.preventDefault()
     e.returnValue = true
+  }
+})
+
+watch(isLoggedIn, newIsLoggedIn => {
+  if (newIsLoggedIn) {
+    appStore.setIsLoginPopupOpened(false)
+    if (steamActionAfterLogin) {
+      steamActionAfterLogin()
+    }
   }
 })
 </script>
@@ -51,6 +100,9 @@ window.addEventListener('beforeunload', (e) => {
       <NavbarButton to="/players" :savingAt="playerStore.at">Players</NavbarButton>
       <NavbarButton to="/prizes" :savingAt="prizeStore.at">Prizes</NavbarButton>
     </nav>
+    <button @click="trySendPrizes">
+      Send Prizes
+    </button>
     <button
       @click="reloadBotInventory"
       class="flex min-w-65 cursor-pointer items-center justify-center gap-2 bg-blue-900 fill-white text-xl font-medium text-white hover:fill-blue-200 hover:text-blue-200"
@@ -78,4 +130,5 @@ window.addEventListener('beforeunload', (e) => {
   <main>
     <RouterView />
   </main>
+  <LoginPopup />
 </template>
