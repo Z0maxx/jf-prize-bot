@@ -1,97 +1,61 @@
 <script setup lang="ts">
 import { tradeUrlRegex, type Player } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
-import { usePrizeStore } from '@/stores/prize'
 
-import MinusButton from '@/components/MinusButton.vue'
-import PlusButton from '@/components/PlusButton.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
+const { addHasChanges, removeHasChanges } = appStore
 const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
 
 const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
 
-const prizeStore = usePrizeStore()
-
-const name = ref('')
-const tradeUrl = ref('')
-
-const nameErrors = reactive<string[]>([])
-const tradeUrlErrors = reactive<string[]>([])
-
 const isPageReady = computed(() => isLoading && !isLoading.value.has(playerStore.at))
 
-const isPageSaving = computed(
-  () => isSaving.value.has(playerStore.at) || isSaving.value.has(prizeStore.at),
-)
-
-const savingAt = computed(() => Array.from(hasChanges.value.values()).join(', '))
-
-function setNameErrors() {
-  nameErrors.splice(0, nameErrors.length)
-  if (name.value === '') {
-    nameErrors.push('Player Name is required')
+function getTradeUrlError(player: Player) {
+  const tradeUrl = player.tradeUrl
+  if (!tradeUrl) {
+    return ''
   }
 
-  if (players.value.some((player) => player.name === name.value)) {
-    nameErrors.push('A Player already has this Name')
-  }
-}
-
-function setTradeUrlErrors() {
-  const tradeUrlValue = tradeUrl.value.trim()
-  tradeUrlErrors.splice(0, tradeUrlErrors.length)
-  if (tradeUrlValue === '') {
-    tradeUrlErrors.push('Trade Url is required')
-  }
-
-  const sameTradeUrl = players.value.find((player) => player.tradeUrl === tradeUrlValue)
+  const sameTradeUrl = players.value.find((p) => p.discordId !== player.discordId && p.tradeUrl === tradeUrl)
   if (sameTradeUrl) {
-    tradeUrlErrors.push(`The Player "${sameTradeUrl.name}" already has this Trade Url`)
+    return `Player '${sameTradeUrl.discordFullName}' already has this Trade Url`
   }
 
-  if (tradeUrlValue && !tradeUrlValue.match(tradeUrlRegex)) {
-    tradeUrlErrors.push(
-      'Trade Url must be in the following format: https://steamcommunity.com/tradeoffer/new/?partner=<partner>&token=<token>',
-    )
+  if (tradeUrl && !tradeUrl.match(tradeUrlRegex)) {
+    return 'Trade Url must be in the following format: https://steamcommunity.com/tradeoffer/new/?partner=<partner>&token=<token>'
   }
-}
-
-function tryAddPlayer() {
-  setNameErrors()
-  setTradeUrlErrors()
-  if (nameErrors.length === 0 && tradeUrlErrors.length === 0) {
-    playerStore.addPlayer({
-      name: name.value.trim(),
-      tradeUrl: tradeUrl.value.trim(),
-    })
-
-    name.value = ''
-    tradeUrl.value = ''
-  }
-}
-
-function removePlayer(player: Player) {
-  playerStore.removePlayer(player)
-  prizeStore.removePrizeForPlayer(player)
 }
 
 function save() {
-  if (hasChanges.value.has(prizeStore.at)) {
-    prizeStore.saveAsync()
-  }
-
   if (hasChanges.value.has(playerStore.at)) {
     playerStore.saveAsync()
   }
 }
+
+function getRanks(player: Player) {
+  return player.discordRanks
+    .map(rank => {
+      const color = '#' + rank.color.toString(16).padStart(6, '0')
+      return `<span style="color: ${color}" class="text-white px-2 font-bold">${rank.name}</span>`
+    })
+    .join('')
+}
+
+watch(players, newPlayers => {
+  if (newPlayers.some(player => !!getTradeUrlError(player))) {
+    removeHasChanges(playerStore.at)
+  } else {
+    addHasChanges(playerStore.at)
+  }
+}, { deep: true })
 
 onBeforeRouteLeave(() => {
   save()
@@ -99,70 +63,28 @@ onBeforeRouteLeave(() => {
 </script>
 <template>
   <div class="flex flex-col items-center" v-if="isPageReady">
-    <div
-      class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
-    >
-      <SubmitButton
-        @click="save"
-        :disabled="!hasChanges.has(playerStore.at)"
-        :is-submitting="isPageSaving"
-        class="w-236"
-        >Save {{ savingAt }}</SubmitButton
-      >
-    </div>
-    <h3>New Player</h3>
-    <div class="overflow-auto">
-      <table class="w-236 table-fixed">
-        <thead>
-          <tr class="text-left">
-            <th class="w-54">
-              <label for="name"
-                ><span>Name</span
-                ><span class="text-2xl leading-1 font-medium text-red-500">*</span></label
-              >
-            </th>
-            <th class="w-172">
-              <label for="tradeUrl"
-                ><span>Trade Url</span
-                ><span class="text-2xl leading-1 font-medium text-red-500">*</span></label
-              >
-            </th>
-            <th class="w-10"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><input v-model="name" id="name" class="min-w-50" /></td>
-            <td><input v-model="tradeUrl" id="tradeUrl" class="min-w-168" /></td>
-            <td>
-              <PlusButton @click="tryAddPlayer" />
-            </td>
-          </tr>
-          <tr class="text-red-600">
-            <td class="align-top">
-              <div v-for="error in nameErrors">{{ error }}</div>
-            </td>
-            <td class="align-top">
-              <div v-for="error in tradeUrlErrors">{{ error }}</div>
-            </td>
-            <td></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4">
+      <SubmitButton @click="save" :disabled="!hasChanges.has(playerStore.at)" :is-submitting="isSaving.has(playerStore.at)" class="w-236">Save Players</SubmitButton>
     </div>
     <h3>Players</h3>
-    <div class="overflow-auto">
-      <table class="w-236 table-fixed border-1 border-black bg-white">
-        <tbody class="divide-y divide-gray-400">
-          <tr v-for="player in players" class="hover:bg-amber-100">
-            <td class="w-54 px-1.5 py-0.5">{{ player.name }}</td>
-            <td class="w-172 px-1.5 py-0.5">{{ player.tradeUrl }}</td>
-            <td class="w-10">
-              <MinusButton @click="removePlayer(player)" />
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <table class="table-fixed w-352 bg-slate-700 text-white">
+      <thead>
+        <tr>
+          <th class="w-80">Ranks</th>
+          <th class="w-100">Full discord name</th>
+          <th class="w-172">Trade Url</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y-2 divide-gray-400">
+        <tr v-for="player in players" :key="player.discordId">
+          <td class="px-2 w-80" v-html="getRanks(player)"></td>
+          <td class="w-100 px-2">{{ player.discordFullName }}</td>
+          <td class="w-172 py-1 pr-2">
+            <input v-model="player.tradeUrl" class="w-full custom-input rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700">
+            <span class="text-fuchsia-400">{{ getTradeUrlError(player) }}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </template>

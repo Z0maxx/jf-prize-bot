@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { killstreakColors, killstreakRanks } from '@/constants/killstreakIconConstants'
 
-import type { UniqueItem } from '@jf-prize-bot/schema';
+import type { UniqueItem } from '@jf-prize-bot/schema'
 
 const { item } = defineProps<{ item: UniqueItem }>()
 const attributes = item.nameParts.map((parts) => parts[0]!)

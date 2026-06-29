@@ -17,10 +17,10 @@ export const usePrizeStore = defineStore('prizeStore', () => {
   }
 
   function getPrizeForPlayer(player: Player) {
-    let prize = prizes.value.find((prize) => prize.player.name === player.name)
+    let prize = prizes.value.find((prize) => prize.discordId === player.discordId)
     if (!prize) {
       prize = {
-        player,
+        discordId: player.discordId,
         assetIds: [],
         keys: 0,
       }
@@ -33,7 +33,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
   }
 
   function removePrizeForPlayer(player: Player) {
-    const idx = prizes.value.findIndex((prize) => prize.player.name === player.name)
+    const idx = prizes.value.findIndex((prize) => prize.discordId === player.discordId)
     if (idx > -1) {
       prizes.value.splice(idx, 1)
       const { addHasChanges } = useAppStore()
@@ -87,11 +87,6 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     removeIsSaving(at)
   }
 
-  async function clearAsync() {
-    prizes.value = []
-    await saveAsync()
-  }
-
   return {
     at,
     prizes,
@@ -103,6 +98,5 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     removePrizeForPlayer,
     loadAsync,
     saveAsync,
-    clearAsync,
   }
 })

@@ -169,7 +169,7 @@ function getSkinName(item: Item): SkinName {
     i++
     while (!value) {
       const val = item.descriptions![i]!.value.trim()
-      if (item.market_hash_name.includes(val)) {
+      if (item.marketHashName.includes(val)) {
         value = val
       }
 
@@ -247,7 +247,7 @@ async function getItemsAsync() {
         tradable: !!invDesc.tradable,
         commodity: !!invDesc.commodity,
         descriptions: invDesc.descriptions,
-        market_hash_name: invDesc.market_hash_name,
+        marketHashName: invDesc.market_hash_name,
         tags: invDesc.tags,
         fraudWarnings: invDesc.fraudwarnings
       } as Item

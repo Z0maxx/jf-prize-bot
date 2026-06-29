@@ -14,22 +14,22 @@ button:not(:disabled) {
 h1,
 h2,
 h3 {
-  @apply my-2 text-center font-medium
+  @apply my-2 text-center font-medium;
 }
 
 h1 {
-  @apply text-2xl
+  @apply text-2xl;
 }
 
 h2 {
-  @apply text-xl
+  @apply text-xl;
 }
 
 h3 {
-  @apply text-lg
+  @apply text-lg;
 }
 
-input,
-select {
-  @apply rounded-md border-2 border-sky-400 bg-sky-200 py-0.5 px-1 focus:outline-sky-700
+input:not(.custom-input),
+select:not(.custom-select) {
+  @apply rounded-md border-2 border-sky-500 bg-sky-200 px-1 py-0.5 focus:outline-sky-700;
 }

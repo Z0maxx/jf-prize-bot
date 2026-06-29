@@ -4,31 +4,49 @@ import "dotenv/config"
 import { getPlayersAsync, savePlayersAsync } from "./players"
 import { getPrizesAsync, savePrizesAsync } from "./prizes"
 import { z } from "zod"
-import { PlayerSchema, PrizeSchema, SteamCredentialsSchema, SteamGuardCodeSchema } from "@jf-prize-bot/schema"
-import { isLoggedIn, logInAsync, sendPrizesAsync, setSteamGuardCodeAsync } from "./steamActions"
+import { PlayerSchema, PrizeSchema, sendPrizesKnownError, SteamCredentialsSchema, SteamGuardCodeSchema, TradeOfferIdSchema, TradeOfferIdsSchema } from "@jf-prize-bot/schema"
+import { cancelAllPrizeTradeOffersAsync, cancelPrizeTradeOfferAsync, isLoggedIn, logInAsync, sendPrizesAsync, setSteamGuardCodeAsync, updatePrizeTradeOfferStatesAsync } from "./steamActions"
+import { getTradeOffersAsync, saveTradeOffersAsync } from "./tradeOffers"
 
 const PrizesSchema = z.array(PrizeSchema)
 const PlayersSchema = z.array(PlayerSchema)
 
 const app = express()
-app.use(express.json())
+app.use(express.json({limit: "1000mb"}))
 
-app.use(function(_, res, next) {
+app.use(function (_, res, next) {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
   next();
 });
 
-app.get('/bot-inventory', async (_, res) => {
+app.get('/inventory', async (_, res) => {
   res.status(200).json(await getInventoryAsync())
 })
 
-app.get('/reload-bot-inventory', async (_, res) => {
+app.get('/reload', async (_, res) => {
+  if (!isLoggedIn()) {
+    res.status(401).send()
+    return
+  }
+
   try {
-    res.status(200).json(await reloadInventoryAsync())
+    const inventory = await reloadInventoryAsync()
+    const tradeOffers = await getTradeOffersAsync()
+    await updatePrizeTradeOfferStatesAsync(tradeOffers)
+    await saveTradeOffersAsync(tradeOffers)
+    res.status(200).json({
+      success: true,
+      inventory,
+      tradeOffers
+    })
+
   }
   catch {
-    res.status(503).send()
+    res.status(200).send({
+      success: false,
+      error: 'Steam is overloaded'
+    })
   }
 })
 
@@ -38,6 +56,10 @@ app.get('/players', async (_, res) => {
 
 app.get('/prizes', async (_, res) => {
   res.status(200).json(await getPrizesAsync())
+})
+
+app.get('/trade-offers', async (_, res) => {
+  res.status(200).send(await getTradeOffersAsync())
 })
 
 app.get('/is-logged-in', async (_, res) => {
@@ -87,10 +109,69 @@ app.post('/steam-guard-code', async (req, res) => {
 })
 
 app.post('/send-prizes', async (_, res) => {
+  if (!isLoggedIn()) {
+    res.status(401).send()
+    return
+  }
+
+  const players = await getPlayersAsync()
   const prizes = await getPrizesAsync()
-  const result = await sendPrizesAsync(prizes)
-  savePrizesAsync(prizes)
-  return res.status(200).send(result)
+  const inventory = await getInventoryAsync()
+  const result = await sendPrizesAsync(players, prizes, inventory.items)
+  if (result.success) {
+    await savePrizesAsync([])
+  }
+  else if (result.error === sendPrizesKnownError.hasFailedTradeOffers) {
+    await savePrizesAsync(result.failedToSendPrizes!)
+  }
+
+  const tradeOffers = await getTradeOffersAsync()
+  result.tradeOffers = result.tradeOffers!.concat(tradeOffers)
+  await saveTradeOffersAsync(result.tradeOffers)
+  res.status(200).send(result)
+})
+
+app.post('/cancel-trade-offer', async (req, res) => {
+  if (!isLoggedIn()) {
+    res.status(401).send()
+    return
+  }
+
+  const parsed = TradeOfferIdSchema.safeParse(req.body)
+  if (parsed.success) {
+    const tradeOfferId = parsed.data.tradeOfferId
+    const result = await cancelPrizeTradeOfferAsync(tradeOfferId)
+    const tradeOffers = await getTradeOffersAsync()
+    tradeOffers.find(offer => offer.tradeOfferId === tradeOfferId)!.state = result.state
+    await saveTradeOffersAsync(tradeOffers)
+
+    res.status(200).send(result)
+  }
+  else {
+    res.status(400).send(parsed.error)
+  }
+})
+
+app.post('/cancel-all-trade-offers', async (req, res) => {
+  if (!isLoggedIn()) {
+    res.status(401).send()
+    return
+  }
+
+  const parsed = TradeOfferIdsSchema.safeParse(req.body)
+  if (parsed.success) {
+    const results = await cancelAllPrizeTradeOffersAsync(parsed.data.tradeOfferIds)
+    const tradeOffers = await getTradeOffersAsync()
+    results.forEach(result => {
+      tradeOffers.find(offer => offer.tradeOfferId === result.tradeOfferId)!.state = result.state
+    })
+
+    await saveTradeOffersAsync(tradeOffers)
+    res.status(200).send(results)
+  }
+  else {
+    res.status(400).send(parsed.error)
+  }
 })
 
 app.listen(6520, () => console.log('Running'))

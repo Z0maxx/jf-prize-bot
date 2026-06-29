@@ -1,34 +1,53 @@
 <script setup lang="ts">
+import { prizeTradeOfferState } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 import { useInventoryStore } from '@/stores/inventory'
 import { usePrizeStore } from '@/stores/prize'
+import { useTradeOfferStore } from '@/stores/tradeOffer'
+import { isActiveTradeOffer } from '@/utils'
 
 const inventoryStore = useInventoryStore()
 const { inventory } = storeToRefs(inventoryStore)
 
 const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
-const allAssignedKeys = computed(() =>
+
+const tradeOfferStore = useTradeOfferStore()
+const { tradeOffers } = storeToRefs(tradeOfferStore)
+
+const prizeKeys = computed(() =>
   prizes.value.map((prize) => prize.keys).reduce((acc, curr) => acc + curr, 0),
 )
-const lessKeysInStock = computed(() => allAssignedKeys.value > inventory.value.keys)
+
+const keysInTradeOffers = computed(() =>
+  tradeOffers.value
+    .filter((offer) => isActiveTradeOffer(offer))
+    .flatMap((offer) => offer.keys ?? 0)
+    .reduce((acc, curr) => acc + curr, 0),
+)
+
+const availableKeys = computed(() => inventory.value.keys - keysInTradeOffers.value)
+const lessKeysAvailable = computed(() => prizeKeys.value > availableKeys.value)
 </script>
 <template>
   <div class="flex gap-4">
     <div>
-      Keys in inventory: <span class="font-medium">{{ inventory.keys }}</span>
+      Keys in trade offers: <span class="font-medium">{{ keysInTradeOffers }}</span>
     </div>
     <div>
-      Assigned keys overall:
-      <span class="font-medium" :class="{ 'text-red-500': lessKeysInStock }">{{
-        allAssignedKeys
+      Available keys in inventory: <span class="font-medium">{{ availableKeys }}</span>
+    </div>
+    <div>
+      Assigned keys in prizes:
+      <span class="font-medium" :class="{ 'text-red-500': lessKeysAvailable }">{{
+        prizeKeys
       }}</span>
     </div>
   </div>
   <div
-    v-if="lessKeysInStock"
+    v-if="lessKeysAvailable"
     class="mt-2 flex items-center gap-2 rounded-md bg-yellow-200 px-2 py-1"
   >
     <svg
@@ -50,6 +69,6 @@ const lessKeysInStock = computed(() => allAssignedKeys.value > inventory.value.k
         fill="#000000"
       />
     </svg>
-    <span>There are more keys assigned than the inventory stock</span>
+    <span>There are more keys assigned to prizes than available</span>
   </div>
 </template>

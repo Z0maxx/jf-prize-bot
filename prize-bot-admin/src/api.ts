@@ -1,4 +1,16 @@
-import type { Inventory, IsLoggedIn, Player, Prize, SendPrizesResult, SteamAuthActionResult, SteamCredentials, SteamGuardCode } from '@jf-prize-bot/schema'
+import type {
+  CancelTradeOfferResult,
+  Inventory,
+  IsLoggedIn,
+  Player,
+  Prize,
+  PrizeTradeOffer,
+  ReloadResult,
+  SendPrizesResult,
+  SteamAuthActionResult,
+  SteamCredentials,
+  SteamGuardCode,
+} from '@jf-prize-bot/schema'
 
 const url = 'http://localhost:6520'
 
@@ -6,15 +18,14 @@ async function get<T>(endpoint: string) {
   const resp = await fetch(url + endpoint)
   if (resp.status === 503) {
     throw new Error('Steam is having issues')
-  }
-  else if (resp.status !== 200) {
+  } else if (resp.status !== 200) {
     throw new Error(await resp.text())
   }
 
   return (await resp.json()) as T
 }
 
-async function post(endpoint: string, value: any) {
+async function post(endpoint: string, value?: any) {
   await fetch(url + endpoint, {
     method: 'POST',
     body: value ? JSON.stringify(value) : undefined,
@@ -24,7 +35,7 @@ async function post(endpoint: string, value: any) {
   })
 }
 
-async function postWithResult<T>(endpoint: string, value: any) {
+async function postWithResult<T>(endpoint: string, value?: any) {
   const resp = await fetch(url + endpoint, {
     method: 'POST',
     body: value ? JSON.stringify(value) : undefined,
@@ -33,42 +44,39 @@ async function postWithResult<T>(endpoint: string, value: any) {
     },
   })
 
-  if (resp.status === 503) {
-    throw new Error('Steam is having issues')
-  }
-  else if (resp.status !== 200) {
-    throw new Error(await resp.text())
-  }
-
   return (await resp.json()) as T
 }
 
 export const api = {
-  async reloadBotInventory() {
-    return get<Inventory>('/reload-bot-inventory')
+  reload() {
+    return get<ReloadResult>('/reload')
   },
 
-  async getBotInventory() {
-    return get<Inventory>('/bot-inventory')
+  getInventory() {
+    return get<Inventory>('/inventory')
   },
 
-  async getPlayers() {
+  getPlayers() {
     return get<Player[]>('/players')
   },
 
-  async getPrizes() {
+  getPrizes() {
     return get<Prize[]>('/prizes')
   },
 
-  async savePlayers(players: Player[]) {
+  getTradeOffers() {
+    return get<PrizeTradeOffer[]>('/trade-offers')
+  },
+
+  savePlayers(players: Player[]) {
     return post('/players', players)
   },
 
-  async savePrizes(prizes: Prize[]) {
+  savePrizes(prizes: Prize[]) {
     return post('/prizes', prizes)
   },
 
-  async login(credentails: SteamCredentials) {
+  login(credentails: SteamCredentials) {
     return postWithResult<SteamAuthActionResult>('/login', credentails)
   },
 
@@ -76,11 +84,23 @@ export const api = {
     return (await get<IsLoggedIn>('/is-logged-in')).isLoggedIn
   },
 
-  async sendSteamGuardCode(steamGuardCode: SteamGuardCode) {
+  sendSteamGuardCode(steamGuardCode: SteamGuardCode) {
     return postWithResult<SteamAuthActionResult>('/steam-guard-code', steamGuardCode)
   },
 
-  async sendPrizes() {
-    return postWithResult<SendPrizesResult>('/send-prizes', null)
-  }
+  sendPrizes() {
+    return postWithResult<SendPrizesResult>('/send-prizes')
+  },
+
+  cancelTradeOffer(tradeOffer: PrizeTradeOffer) {
+    return postWithResult<CancelTradeOfferResult>('/cancel-trade-offer', {
+      tradeOfferId: tradeOffer.tradeOfferId!,
+    })
+  },
+
+  cancelAllTradeOffers(tradeOffers: PrizeTradeOffer[]) {
+    return postWithResult<CancelTradeOfferResult[]>('/cancel-all-trade-offers', {
+      tradeOfferIds: tradeOffers.map((offer) => offer.tradeOfferId!),
+    })
+  },
 }

@@ -7,6 +7,7 @@ import App from './App.vue'
 import HomeView from './views/HomeView.vue'
 import PlayersView from './views/PlayersView.vue'
 import PrizesView from './views/PrizesView.vue'
+import TradeOffersView from './views/TradeOffersView.vue'
 
 const app = createApp(App)
 
@@ -16,6 +17,7 @@ const routes = [
   { path: '/', component: HomeView },
   { path: '/players', component: PlayersView },
   { path: '/prizes', component: PrizesView },
+  { path: '/trade-offers', component: TradeOffersView },
 ]
 
 const router = createRouter({

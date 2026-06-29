@@ -1,7 +1,24 @@
 import { categoryNames } from "./inventory/categoryNames"
 import { descriptionValues } from "./inventory/descriptionValues"
 import { tagNames } from "./inventory/tagNames"
-import { Player, Prize, UniqueItem } from "@jf-prize-bot/schema"
+import { DiscordRank, Player, Prize, UniqueItem } from "@jf-prize-bot/schema"
+
+export type DiscordRole = {
+  id: string
+  color: number
+  name: string
+}
+
+export type DiscordRanks = Map<string, DiscordRank>
+
+export type DiscordMember = {
+  user: {
+    global_name: string
+    username: string
+    id: string
+  }
+  roles: string[]
+}
 
 export type CommonItem = {
   name: string
@@ -22,7 +39,7 @@ export type Item = {
   classId: string
   name: string
   iconUrl: string
-  market_hash_name: string
+  marketHashName: string
   tradable: boolean
   commodity: boolean
   tags: Tag[]

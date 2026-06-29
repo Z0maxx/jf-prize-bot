@@ -17,7 +17,7 @@ export const useInventoryStore = defineStore('inventoryStore', () => {
   }
 
   async function loadAsync() {
-    setInventory(await api.getBotInventory())
+    setInventory(await api.getInventory())
   }
 
   return {
