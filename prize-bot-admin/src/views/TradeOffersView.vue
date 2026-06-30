@@ -128,10 +128,6 @@ async function deleteAll() {
   deletingAll.value = false
 }
 
-onMounted(() => {
-  tradeOfferStore.loadAsync()
-})
-
 watch(isLoggedIn, (newIsLoggedIn) => {
   if (newIsLoggedIn) {
     if (cancelAfterLogin) {

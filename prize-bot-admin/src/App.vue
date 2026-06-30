@@ -2,11 +2,11 @@
 import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
 
-import { api } from './api.ts'
 import { useAppStore } from './stores/app.ts'
 import { useInventoryStore } from './stores/inventory.ts'
 import { usePlayerStore } from './stores/player.ts'
 import { usePrizeStore } from './stores/prize.ts'
+import { useTradeOfferStore } from './stores/tradeOffer.ts'
 
 import LoginPopup from './components/LoginPopup.vue'
 import NavbarButton from './components/NavbarButton.vue'
@@ -19,6 +19,7 @@ const { hasChanges } = storeToRefs(appStore)
 const playerStore = usePlayerStore()
 const prizeStore = usePrizeStore()
 const inventoryStore = useInventoryStore()
+const tradeOfferStore = useTradeOfferStore()
 
 const unsavedChangesAt = computed(() => {
   return 'Unsaved changes in data for ' + Array.from(hasChanges.value.values()).join(', ')
@@ -28,6 +29,7 @@ onMounted(async () => {
   inventoryStore.loadAsync()
   playerStore.loadAsync()
   prizeStore.loadAsync()
+  tradeOfferStore.loadAsync()
   appStore.setIsLoggedInAsync()
 })
 
