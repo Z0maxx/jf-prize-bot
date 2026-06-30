@@ -103,4 +103,8 @@ export const api = {
       tradeOfferIds: tradeOffers.map((offer) => offer.tradeOfferId!),
     })
   },
+
+  deleteAllTradeOffers() {
+    return post('/delete-trade-offers')
+  }
 }

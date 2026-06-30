@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { tradeUrlRegex, type Player } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
 
 import SubmitButton from '@/components/SubmitButton.vue'
+import LoadingPage from '@/components/LoadingPage.vue'
+import { usePrizeStore } from '@/stores/prize'
 
 const appStore = useAppStore()
 const { addHasChanges, removeHasChanges } = appStore
@@ -16,7 +18,11 @@ const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
 const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
 
-const isPageReady = computed(() => isLoading && !isLoading.value.has(playerStore.at))
+const prizeStore = usePrizeStore()
+
+const isPageLoading = computed(() => !isLoading || isLoading.value.has(playerStore.at))
+
+let originalTradeUrls = new Map<string, string | undefined>()
 
 function getTradeUrlError(player: Player) {
   const tradeUrl = player.tradeUrl
@@ -34,10 +40,23 @@ function getTradeUrlError(player: Player) {
   }
 }
 
-function save() {
+async function save() {
   if (hasChanges.value.has(playerStore.at)) {
+    players.value
+    .filter(player => !player.tradeUrl && !!originalTradeUrls.get(player.discordId))
+    .forEach(player => prizeStore.removePrizeForPlayer(player))
+
+    if (hasChanges.value.has(prizeStore.at)) {
+      await prizeStore.saveAsync()
+    }
+
+    setOriginalTradeUrls()
     playerStore.saveAsync()
   }
+}
+
+function setOriginalTradeUrls() {
+  originalTradeUrls = new Map(players.value.map(player => [player.discordId, player.tradeUrl]))
 }
 
 function getRanks(player: Player) {
@@ -49,10 +68,18 @@ function getRanks(player: Player) {
     .join('')
 }
 
-watch(players, newPlayers => {
+watch(isPageLoading, () => {
+  if (!isPageLoading.value) {
+    setOriginalTradeUrls()
+  }
+})
+
+watch(players, (newPlayers) => {
+  console.log(originalTradeUrls.size)
   if (newPlayers.some(player => !!getTradeUrlError(player))) {
     removeHasChanges(playerStore.at)
-  } else {
+  } else if (originalTradeUrls.size > 0 && newPlayers.some(player => player.tradeUrl !== originalTradeUrls.get(player.discordId))) {
+    console.log(newPlayers.filter(player => player.tradeUrl !== originalTradeUrls.get(player.discordId)))
     addHasChanges(playerStore.at)
   }
 }, { deep: true })
@@ -62,9 +89,10 @@ onBeforeRouteLeave(() => {
 })
 </script>
 <template>
-  <div class="flex flex-col items-center" v-if="isPageReady">
+  <LoadingPage v-if="isPageLoading" :name="playerStore.at" />
+  <div class="flex flex-col items-center" v-else>
     <div class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4">
-      <SubmitButton @click="save" :disabled="!hasChanges.has(playerStore.at)" :is-submitting="isSaving.has(playerStore.at)" class="w-236">Save Players</SubmitButton>
+      <SubmitButton @click="save" :disabled="!hasChanges.has(playerStore.at)" :is-submitting="isSaving.has(playerStore.at)" class="w-236 button-green">Save Players</SubmitButton>
     </div>
     <h3>Players</h3>
     <table class="table-fixed w-352 bg-slate-700 text-white">

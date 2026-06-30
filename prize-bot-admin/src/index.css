@@ -5,6 +5,82 @@
   --color-genuine: rgb(42.4098445596, 63.8901554404, 46.8160621762);
   --color-vintage: rgb(42.5013888889, 58.6638888889, 86.7986111111);
   --color-collectors: rgb(95.3, 0, 0);
+
+  --color-button-base-bg-red: var(--color-red-200);
+  --color-button-base-border-red: var(--color-red-600);
+  --color-button-hover-bg-red: var(--color-red-300);
+  --color-button-base-bg-orange: var(--color-orange-200);
+  --color-button-base-border-orange: var(--color-orange-600);
+  --color-button-hover-bg-orange: var(--color-orange-300);
+  --color-button-base-bg-amber: var(--color-amber-200);
+  --color-button-base-border-amber: var(--color-amber-600);
+  --color-button-hover-bg-amber: var(--color-amber-300);
+  --color-button-base-bg-yellow: var(--color-yellow-200);
+  --color-button-base-border-yellow: var(--color-yellow-600);
+  --color-button-hover-bg-yellow: var(--color-yellow-300);
+  --color-button-base-bg-lime: var(--color-lime-200);
+  --color-button-base-border-lime: var(--color-lime-600);
+  --color-button-hover-bg-lime: var(--color-lime-300);
+  --color-button-base-bg-green: var(--color-green-200);
+  --color-button-base-border-green: var(--color-green-600);
+  --color-button-hover-bg-green: var(--color-green-300);
+  --color-button-base-bg-emerald: var(--color-emerald-200);
+  --color-button-base-border-emerald: var(--color-emerald-600);
+  --color-button-hover-bg-emerald: var(--color-emerald-300);
+  --color-button-base-bg-teal: var(--color-teal-200);
+  --color-button-base-border-teal: var(--color-teal-600);
+  --color-button-hover-bg-teal: var(--color-teal-300);
+  --color-button-base-bg-cyan: var(--color-cyan-200);
+  --color-button-base-border-cyan: var(--color-cyan-600);
+  --color-button-hover-bg-cyan: var(--color-cyan-300);
+  --color-button-base-bg-sky: var(--color-sky-200);
+  --color-button-base-border-sky: var(--color-sky-600);
+  --color-button-hover-bg-sky: var(--color-sky-300);
+  --color-button-base-bg-blue: var(--color-blue-200);
+  --color-button-base-border-blue: var(--color-blue-600);
+  --color-button-hover-bg-blue: var(--color-blue-300);
+  --color-button-base-bg-indigo: var(--color-indigo-200);
+  --color-button-base-border-indigo: var(--color-indigo-600);
+  --color-button-hover-bg-indigo: var(--color-indigo-300);
+  --color-button-base-bg-violet: var(--color-violet-200);
+  --color-button-base-border-violet: var(--color-violet-600);
+  --color-button-hover-bg-violet: var(--color-violet-300);
+  --color-button-base-bg-purple: var(--color-purple-200);
+  --color-button-base-border-purple: var(--color-purple-600);
+  --color-button-hover-bg-purple: var(--color-purple-300);
+  --color-button-base-bg-fuchsia: var(--color-fuchsia-200);
+  --color-button-base-border-fuchsia: var(--color-fuchsia-600);
+  --color-button-hover-bg-fuchsia: var(--color-fuchsia-300);
+  --color-button-base-bg-pink: var(--color-pink-200);
+  --color-button-base-border-pink: var(--color-pink-600);
+  --color-button-hover-bg-pink: var(--color-pink-300);
+  --color-button-base-bg-rose: var(--color-rose-200);
+  --color-button-base-border-rose: var(--color-rose-600);
+  --color-button-hover-bg-rose: var(--color-rose-300);
+  --color-button-base-bg-slate: var(--color-slate-200);
+  --color-button-base-border-slate: var(--color-slate-600);
+  --color-button-hover-bg-slate: var(--color-slate-300);
+  --color-button-base-bg-gray: var(--color-gray-200);
+  --color-button-base-border-gray: var(--color-gray-600);
+  --color-button-hover-bg-gray: var(--color-gray-300);
+  --color-button-base-bg-zinc: var(--color-zinc-200);
+  --color-button-base-border-zinc: var(--color-zinc-600);
+  --color-button-hover-bg-zinc: var(--color-zinc-300);
+  --color-button-base-bg-neutral: var(--color-neutral-200);
+  --color-button-base-border-neutral: var(--color-neutral-600);
+  --color-button-hover-bg-neutral: var(--color-neutral-300);
+  --color-button-base-bg-stone: var(--color-stone-200);
+  --color-button-base-border-stone: var(--color-stone-600);
+  --color-button-hover-bg-stone: var(--color-stone-300);
+}
+
+@utility button-* {
+  background-color: --value(--color-button-base-bg-*);
+  border-color: --value(--color-button-base-border-*);
+
+  &:hover {
+    background-color: --value(--color-button-hover-bg-*);
+  }
 }
 
 button:not(:disabled) {

@@ -36,7 +36,7 @@ export const usePlayerStore = defineStore('playerStore', () => {
   async function saveAsync() {
     const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
     addIsSaving(at)
-    await api.savePlayers(players.value.filter(player => !!player.tradeUrl))
+    await api.savePlayers(players.value.filter((player) => !!player.tradeUrl))
     removeHasChanges(at)
     removeIsSaving(at)
   }

@@ -59,7 +59,7 @@ async function submit() {
       }
     } else if (result.success) {
       mode.value = 'steam-guard-code'
-      steamGuardCodeRef.value?.focus()
+      resetErrors()
     }
 
     credentials.accountName = ''
@@ -92,13 +92,27 @@ function close() {
   appStore.setIsLoginPopupOpened(false)
   credentials.accountName = ''
   credentials.password = ''
+}
+
+function resetErrors() {
+  accountNameError.value = ''
+  passwordError.value = ''
+  steamGuardCodeError.value = ''
   error.value = ''
 }
+
+watch(accountNameRef, () => {
+  accountNameRef.value?.focus()
+})
+
+watch(steamGuardCodeRef, () => {
+  steamGuardCodeRef.value?.focus()
+})
 
 watch(isLoginPopupOpened, (opened) => {
   if (opened) {
     mode.value = 'login'
-    accountNameRef.value?.focus()
+    resetErrors()
   } else {
     close()
   }
@@ -143,7 +157,7 @@ watch(isLoginPopupOpened, (opened) => {
           </div>
         </template>
         <div class="text-sm text-red-500">{{ error }}</div>
-        <SubmitButton @click="submit" :is-submitting="isSubmitting">Submit</SubmitButton>
+        <SubmitButton @click="submit" :is-submitting="isSubmitting" class="button-green">Submit</SubmitButton>
       </div>
     </div>
   </dialog>

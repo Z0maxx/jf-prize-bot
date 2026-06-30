@@ -33,7 +33,7 @@ async function sendPrizesAsync() {
   } else if (result.error === sendPrizesKnownError.playersNotFound) {
     alert('Players not found:\n' + result.playersNotFound?.join('\n'))
   } else if (result.error === sendPrizesKnownError.itemsInTradeOffer) {
-    alert('Items are in trade offers:\n' + result.itemsInTradeOffer?.join('\n'))
+    alert('Items are in trade offers already with asset ids:\n' + result.itemsInTradeOffer?.join('\n'))
   } else if (result.error === sendPrizesKnownError.hasFailedTradeOffers) {
     prizeStore.setPrizes(result.failedToSendPrizes!)
     tradeOfferStore.setTradeOffers(result.tradeOffers!)

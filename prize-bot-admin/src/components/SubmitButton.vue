@@ -4,7 +4,7 @@ defineProps<{ isSubmitting: boolean }>()
 
 <template>
   <button
-    class="flex justify-center rounded-md border-2 border-green-600 bg-green-200 px-2 py-1 text-lg font-medium transition-colors hover:bg-green-300 disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-200 disabled:text-gray-600"
+    class="flex justify-center rounded-md border-2 px-10 py-1 text-lg font-medium transition-colors disabled:cursor-not-allowed disabled:border-slate-600 disabled:bg-slate-200 disabled:text-gray-600"
   >
     <span class="relative">
       <span><slot></slot></span>

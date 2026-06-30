@@ -18,6 +18,7 @@ import { isActiveTradeOffer } from '@/utils'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
+import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
@@ -44,9 +45,9 @@ const sortedItems = reactive<{ assignedItems: UniqueItem[]; unassignedItems: Uni
   unassignedItems: [],
 })
 
-const playersWithTradeUrls = computed(() => players.value.filter(player => !!player.tradeUrl))
-const isPageReady = computed(
-  () => isLoading && !isLoading.value.has(playerStore.at) && !isLoading.value.has(prizeStore.at),
+const playersWithTradeUrls = computed(() => players.value.filter((player) => !!player.tradeUrl))
+const isPageLoading = computed(
+  () => !isLoading || isLoading.value.has(playerStore.at) || isLoading.value.has(prizeStore.at),
 )
 
 let selectedPrize: Prize | null
@@ -126,7 +127,8 @@ onBeforeRouteLeave(() => {
 })
 </script>
 <template>
-  <div class="flex flex-col items-center" v-if="isPageReady">
+  <LoadingPage v-if="isPageLoading" :name="prizeStore.at" />
+  <div class="flex flex-col items-center" v-else>
     <h1 v-if="playersWithTradeUrls.length === 0">There are no players with Trade Urls</h1>
     <div
       v-else
@@ -137,7 +139,7 @@ onBeforeRouteLeave(() => {
           @click="prizeStore.saveAsync"
           :disabled="!hasChanges.has(prizeStore.at)"
           :is-submitting="isSaving.has(prizeStore.at)"
-          class="w-full"
+          class="w-full button-green"
           >Save Prizes</SubmitButton
         >
       </div>

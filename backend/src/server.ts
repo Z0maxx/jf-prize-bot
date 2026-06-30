@@ -125,9 +125,12 @@ app.post('/send-prizes', async (_, res) => {
     await savePrizesAsync(result.failedToSendPrizes!)
   }
 
-  const tradeOffers = await getTradeOffersAsync()
-  result.tradeOffers = result.tradeOffers!.concat(tradeOffers)
-  await saveTradeOffersAsync(result.tradeOffers)
+  if (result.tradeOffers) {
+    const storedOffers = await getTradeOffersAsync()
+    result.tradeOffers = storedOffers.concat(result.tradeOffers)
+    await saveTradeOffersAsync(result.tradeOffers)
+  }
+  
   res.status(200).send(result)
 })
 
@@ -172,6 +175,11 @@ app.post('/cancel-all-trade-offers', async (req, res) => {
   else {
     res.status(400).send(parsed.error)
   }
+})
+
+app.post('/delete-trade-offers', async (_, res) => {
+  await saveTradeOffersAsync([])
+  res.status(201).send()
 })
 
 app.listen(6520, () => console.log('Running'))
