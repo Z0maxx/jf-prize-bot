@@ -25,7 +25,7 @@ const { players } = storeToRefs(playerStore)
 const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
 
-const isPageLoading = computed(() => !isLoading || isLoading.value.has(prizeStore.at))
+const isPageLoading = computed(() => !isLoading || isLoading.value.has(prizeStore.at) || isLoading.value.has(playerStore.at))
 
 const prizesWithItems = computed(() =>
   prizes.value
