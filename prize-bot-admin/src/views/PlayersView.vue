@@ -40,6 +40,8 @@ function getTradeUrlError(player: Player) {
   if (tradeUrl && !tradeUrl.match(tradeUrlRegex)) {
     return 'Trade Url must be in the following format: https://steamcommunity.com/tradeoffer/new/?partner=<partner>&token=<token>'
   }
+
+  return ''
 }
 
 async function save() {
@@ -70,6 +72,11 @@ function getRanks(player: Player) {
     .join('')
 }
 
+function trim(e: InputEvent) {
+  const target = (e.target! as HTMLInputElement)
+  target.value = target.value.trim()
+}
+
 watch(isPageLoading, () => {
   if (!isPageLoading.value) {
     setOriginalTradeUrls()
@@ -79,11 +86,11 @@ watch(isPageLoading, () => {
 watch(
   players,
   (newPlayers) => {
-    if (newPlayers.some((player) => !!getTradeUrlError(player))) {
+    const hasDifferentTradeUrl = newPlayers.filter((player) => (player.tradeUrl ?? '') !== (originalTradeUrls.get(player.discordId) ?? ''))
+    if (newPlayers.some((player) => !!getTradeUrlError(player)) || hasDifferentTradeUrl.length === 0) {
       removeHasChanges(playerStore.at)
     } else if (
-      originalTradeUrls.size > 0 &&
-      newPlayers.some((player) => player.tradeUrl !== originalTradeUrls.get(player.discordId))
+      originalTradeUrls.size > 0 && hasDifferentTradeUrl.length > 0
     ) {
       addHasChanges(playerStore.at)
     }
@@ -125,6 +132,7 @@ onBeforeRouteLeave(() => {
           <td class="w-172 py-1 pr-2">
             <input
               v-model="player.tradeUrl"
+              @input="trim"
               class="custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
             />
             <span class="text-fuchsia-400">{{ getTradeUrlError(player) }}</span>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type SteamCredentials } from '@jf-prize-bot/schema'
+import { SteamGuardCodeSchema, type SteamCredentials } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 //@ts-ignore
 import EResult from 'steam-user/enums/EResult'
@@ -30,6 +30,8 @@ const credentials = reactive<SteamCredentials>({
 
 const steamGuardCodeRef = useTemplateRef('steam-guard-code')
 const accountNameRef = useTemplateRef('account-name')
+
+const steamGuardCodeLength = SteamGuardCodeSchema.shape.steamGuardCode.minLength
 
 async function submit() {
   hasError = false
@@ -70,8 +72,13 @@ async function submit() {
       return
     }
 
+    if (steamGuardCode.value.length !== steamGuardCodeLength) {
+      steamGuardCodeError.value = `Steam Guard Code needs to be ${steamGuardCodeLength} characters`
+      return
+    }
+
     isSubmitting.value = true
-    const result = await api.sendSteamGuardCode({ steamGuardCode: steamGuardCode.value })
+    const result = await api.sendSteamGuardCode({ steamGuardCode: steamGuardCode.value.toUpperCase() })
     isSubmitting.value = false
     if (!result.success && result.error) {
       if (result.error === EResult.TwoFactorCodeMismatch) {

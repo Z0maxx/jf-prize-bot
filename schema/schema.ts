@@ -77,7 +77,7 @@ export const SteamCredentialsSchema = z.object({
 export type SteamCredentials = z.infer<typeof SteamCredentialsSchema>
 
 export const SteamGuardCodeSchema = z.object({
-  steamGuardCode: z.string().min(5)
+  steamGuardCode: z.string().length(5)
 })
 
 export type SteamGuardCode = z.infer<typeof SteamGuardCodeSchema>
