@@ -73,7 +73,7 @@ function getRanks(player: Player) {
 }
 
 function trim(e: InputEvent) {
-  const target = (e.target! as HTMLInputElement)
+  const target = e.target! as HTMLInputElement
   target.value = target.value.trim()
 }
 
@@ -86,12 +86,15 @@ watch(isPageLoading, () => {
 watch(
   players,
   (newPlayers) => {
-    const hasDifferentTradeUrl = newPlayers.filter((player) => (player.tradeUrl ?? '') !== (originalTradeUrls.get(player.discordId) ?? ''))
-    if (newPlayers.some((player) => !!getTradeUrlError(player)) || hasDifferentTradeUrl.length === 0) {
-      removeHasChanges(playerStore.at)
-    } else if (
-      originalTradeUrls.size > 0 && hasDifferentTradeUrl.length > 0
+    const hasDifferentTradeUrl = newPlayers.filter(
+      (player) => (player.tradeUrl ?? '') !== (originalTradeUrls.get(player.discordId) ?? ''),
+    )
+    if (
+      newPlayers.some((player) => !!getTradeUrlError(player)) ||
+      hasDifferentTradeUrl.length === 0
     ) {
+      removeHasChanges(playerStore.at)
+    } else if (originalTradeUrls.size > 0 && hasDifferentTradeUrl.length > 0) {
       addHasChanges(playerStore.at)
     }
   },

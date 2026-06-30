@@ -10,7 +10,7 @@ import { useAppStore } from '@/stores/app'
 
 import SubmitButton from './SubmitButton.vue'
 
-const EResult = EResultValue as typeof import("steam-user").EResult
+const EResult = EResultValue as typeof import('steam-user').EResult
 
 const appStore = useAppStore()
 const { isLoginPopupOpened } = storeToRefs(appStore)
@@ -80,7 +80,9 @@ async function submit() {
     }
 
     isSubmitting.value = true
-    const result = await api.sendSteamGuardCode({ steamGuardCode: steamGuardCode.value.toUpperCase() })
+    const result = await api.sendSteamGuardCode({
+      steamGuardCode: steamGuardCode.value.toUpperCase(),
+    })
     isSubmitting.value = false
     if (!result.success && result.error) {
       if (result.error === EResult.TwoFactorCodeMismatch) {
