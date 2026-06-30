@@ -35,7 +35,8 @@ if (attributes.length > 0) {
 }
 
 const colorStyle = `background-color: ${bgColor}; border-color: ${bdrColor}`
-const backgroundStyle = `background-image:url(${item.iconUrl?.replace(' ', '%20')}), url(${item.unusualIconUrl})`
+const unusualIconUrl = item.unusualIconUrl ? `, url(${item.unusualIconUrl})` : ''
+const backgroundStyle = `background-image:url(${item.iconUrl?.replace(' ', '%20')})${unusualIconUrl}`
 </script>
 
 <template>
