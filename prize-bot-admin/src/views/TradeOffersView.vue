@@ -20,8 +20,14 @@ const appStore = useAppStore()
 const { isLoggedIn, isLoading } = storeToRefs(appStore)
 
 const tradeOfferStore = useTradeOfferStore()
-const { tradeOffers, isClearingHistory, isCancellingAll, isCancelling, cancellingRefs, activeTradeOffers } =
-  storeToRefs(tradeOfferStore)
+const {
+  tradeOffers,
+  isClearingHistory,
+  isCancellingAll,
+  isCancelling,
+  cancellingRefs,
+  activeTradeOffers,
+} = storeToRefs(tradeOfferStore)
 
 const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
@@ -35,9 +41,7 @@ const isButtonDisabled = computed(
   () => isClearingHistory.value || isCancellingAll.value || isCancelling.value,
 )
 
-const anyCanBeCanceled = computed(() =>
-  activeTradeOffers.value.length > 0,
-)
+const anyCanBeCanceled = computed(() => activeTradeOffers.value.length > 0)
 
 const stateColors: Record<PrizeTradeOfferState, string> = {
   accepted: 'bg-lime-300',
@@ -60,7 +64,7 @@ function getPlayerName(offer: PrizeTradeOffer) {
 
 function setState(result: CancelTradeOfferResult) {
   tradeOffers.value.find((offer) => offer.tradeOfferId === result.tradeOfferId)!.state =
-    result.state
+    result.state!
 }
 
 async function cancel(offer: PrizeTradeOffer) {
@@ -85,14 +89,19 @@ async function tryCancel(offer: PrizeTradeOffer) {
 }
 
 async function cancelAll() {
-  const results = await tradeOfferStore.cancelAllAsync()
-  results.forEach((result) => setState(result))
-  const failed = results
-    .filter((result) => !result.success)
-    .map((result) => `${result.tradeOfferId}: ${result.error}`)
+  const result = await tradeOfferStore.cancelAllAsync()
+  if (result.success) {
+    const results = result.cancelTradeOfferResults!
+    results.forEach((result) => setState(result))
+    const failed = results
+      .filter((result) => !result.success)
+      .map((result) => `${result.tradeOfferId}: ${result.error}`)
 
-  if (failed.length > 0) {
-    alert('Failed to cancel trade offers:\n' + failed.join('\n'))
+    if (failed.length > 0) {
+      alert('Failed to cancel trade offers with ids:\n' + failed.join('\n'))
+    }
+  } else {
+    alert('Failed to cancel trade offers: ' + result.error)
   }
 }
 
@@ -112,8 +121,7 @@ async function clearHistory() {
   const result = await tradeOfferStore.clearHistoryAsync()
   if (result.success) {
     tradeOfferStore.setTradeOffers(result.activeTradeOffers!)
-  }
-  else {
+  } else {
     alert('Failed to fetch active trade offers: ' + result.error)
   }
 }
@@ -156,26 +164,57 @@ watch(isLoggedIn, (newIsLoggedIn) => {
   <template v-else>
     <div v-if="anyCanBeCanceled || tradeOffers.length > 0" class="mt-4 flex justify-center">
       <div class="flex w-180 gap-4">
-        <SubmitButton @click="tryCancelAll" :is-submitting="isCancellingAll" :disabled="isButtonDisabled" class="w-full button-amber">Cancel All Trade Offers</SubmitButton>
-        <SubmitButton @click="tryClearHistory" :is-submitting="isClearingHistory" :disabled="isButtonDisabled" class="w-full button-rose">Clear Inactive History</SubmitButton>
+        <SubmitButton
+          @click="tryCancelAll"
+          :is-submitting="isCancellingAll"
+          :disabled="isButtonDisabled"
+          class="w-full button-amber"
+          >Cancel All Trade Offers</SubmitButton
+        >
+        <SubmitButton
+          @click="tryClearHistory"
+          :is-submitting="isClearingHistory"
+          :disabled="isButtonDisabled"
+          class="w-full button-rose"
+          >Clear Inactive History</SubmitButton
+        >
       </div>
     </div>
     <h1 v-if="tradeOffers.length === 0">There are no Trade Offers</h1>
     <div v-for="offer in tradeOffers" :key="offer.id">
       <h2>Trade Offer for {{ getPlayerName(offer) }}</h2>
       <div class="flex flex-col items-center gap-2">
-        <span class="text-xs text-gray-500" v-if="offer.tradeOfferId">Id: {{ offer.tradeOfferId }}</span>
-        <SubmitButton v-if="isActiveTradeOffer(offer)" @click="tryCancel(offer)" :is-submitting="cancellingRefs.get(offer.id!)!.value" :disabled="isButtonDisabled" class="button-amber">Cancel</SubmitButton>
-        <span :class="[stateColors[offer.state]]" class="rounded-md border-2 border-black px-2 py-1 font-medium">{{ offer.state }}</span>
+        <span class="text-xs text-gray-500" v-if="offer.tradeOfferId"
+          >Id: {{ offer.tradeOfferId }}</span
+        >
+        <SubmitButton
+          v-if="isActiveTradeOffer(offer)"
+          @click="tryCancel(offer)"
+          :is-submitting="cancellingRefs.get(offer.id!)!.value"
+          :disabled="isButtonDisabled"
+          class="button-amber"
+          >Cancel</SubmitButton
+        >
+        <span
+          :class="[stateColors[offer.state]]"
+          class="rounded-md border-2 border-black px-2 py-1 font-medium"
+          >{{ offer.state }}</span
+        >
         <div v-if="offer.error">{{ offer.error }}</div>
       </div>
       <h3 v-if="offer.keys">Keys: {{ offer.keys }}</h3>
       <template v-if="offer.items">
         <div class="flex flex-col items-center">
           <h3>Sent Items</h3>
-          <div v-for="item in offer.items" :key="item.assetId" class="relative flex w-180 cursor-pointer items-center">
+          <div
+            v-for="item in offer.items"
+            :key="item.assetId"
+            class="relative flex w-180 cursor-pointer items-center"
+          >
             <DisplayItem :item="item" />
-            <div class="absolute top-1 right-0 text-xs text-gray-500"> Asset id: {{ item.assetId }} </div>
+            <div class="absolute top-1 right-0 text-xs text-gray-500">
+              Asset id: {{ item.assetId }}
+            </div>
           </div>
         </div>
       </template>

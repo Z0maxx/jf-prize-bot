@@ -21,9 +21,7 @@ const prizeKeys = computed(() =>
 )
 
 const keysInTradeOffers = computed(() =>
-  activeTradeOffers.value
-    .flatMap((offer) => offer.keys ?? 0)
-    .reduce((acc, curr) => acc + curr, 0),
+  activeTradeOffers.value.flatMap((offer) => offer.keys ?? 0).reduce((acc, curr) => acc + curr, 0),
 )
 
 const availableKeys = computed(() => inventory.value.keys - keysInTradeOffers.value)

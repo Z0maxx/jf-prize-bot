@@ -11,7 +11,9 @@ import type { PrizeTradeOffer } from '@jf-prize-bot/schema'
 const at = 'Trade Offers'
 export const useTradeOfferStore = defineStore('tradeOffer', () => {
   const tradeOffers = ref<PrizeTradeOffer[]>([])
-  const activeTradeOffers = computed(() => tradeOffers.value.filter((offer) => isActiveTradeOffer(offer)))
+  const activeTradeOffers = computed(() =>
+    tradeOffers.value.filter((offer) => isActiveTradeOffer(offer)),
+  )
   const isClearingHistory = ref(false)
   const isCancellingAll = ref(false)
   const isCancelling = ref(false)

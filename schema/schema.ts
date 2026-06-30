@@ -127,8 +127,12 @@ export const TradeOfferIdsSchema = z.object({
 })
 
 export type CancelTradeOfferResult = Result & {
-  tradeOfferId: string
-  state: PrizeTradeOfferState
+  tradeOfferId?: string
+  state?: PrizeTradeOfferState
+}
+
+export type CancelAllTradeOffersResult = Result & {
+  cancelTradeOfferResults?: CancelTradeOfferResult[]
 }
 
 export type ClearTradeOfferHistoryResult = Result & {

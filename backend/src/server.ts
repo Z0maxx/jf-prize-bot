@@ -51,7 +51,12 @@ app.get('/reload', async (_, res) => {
   try {
     const inventory = await reloadInventoryAsync()
     const tradeOffers = await getTradeOffersAsync()
-    await updatePrizeTradeOfferStatesAsync(tradeOffers)
+    const result = await updatePrizeTradeOfferStatesAsync(tradeOffers)
+    if (!result.success) {
+      res.status(200).send(result)
+      return
+    }
+
     await saveTradeOffersAsync(tradeOffers)
     res.status(200).json({
       success: true,
@@ -155,9 +160,11 @@ app.post('/cancel-trade-offer', async (req, res) => {
   if (parsed.success) {
     const tradeOfferId = parsed.data.tradeOfferId
     const result = await cancelPrizeTradeOfferAsync(tradeOfferId)
-    const tradeOffers = await getTradeOffersAsync()
-    tradeOffers.find((offer) => offer.tradeOfferId === tradeOfferId)!.state = result.state
-    await saveTradeOffersAsync(tradeOffers)
+    if (result.success) {
+      const tradeOffers = await getTradeOffersAsync()
+      tradeOffers.find((offer) => offer.tradeOfferId === tradeOfferId)!.state = result.state!
+      await saveTradeOffersAsync(tradeOffers)
+    }
 
     res.status(200).send(result)
   } else {
@@ -173,14 +180,18 @@ app.post('/cancel-all-trade-offers', async (req, res) => {
 
   const parsed = TradeOfferIdsSchema.safeParse(req.body)
   if (parsed.success) {
-    const results = await cancelAllPrizeTradeOffersAsync(parsed.data.tradeOfferIds)
-    const tradeOffers = await getTradeOffersAsync()
-    results.forEach((result) => {
-      tradeOffers.find((offer) => offer.tradeOfferId === result.tradeOfferId)!.state = result.state
-    })
+    const result = await cancelAllPrizeTradeOffersAsync(parsed.data.tradeOfferIds)
+    if (result.success) {
+      const tradeOffers = await getTradeOffersAsync()
+      result.cancelTradeOfferResults!.forEach((result) => {
+        tradeOffers.find((offer) => offer.tradeOfferId === result.tradeOfferId)!.state =
+          result.state!
+      })
 
-    await saveTradeOffersAsync(tradeOffers)
-    res.status(200).send(results)
+      await saveTradeOffersAsync(tradeOffers)
+    }
+
+    res.status(200).send(result)
   } else {
     res.status(400).send(parsed.error)
   }

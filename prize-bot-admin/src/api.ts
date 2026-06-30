@@ -1,4 +1,5 @@
 import type {
+  CancelAllTradeOffersResult,
   CancelTradeOfferResult,
   ClearTradeOfferHistoryResult,
   Inventory,
@@ -100,7 +101,7 @@ export const api = {
   },
 
   cancelAllTradeOffers(tradeOffers: PrizeTradeOffer[]) {
-    return postWithResult<CancelTradeOfferResult[]>('/cancel-all-trade-offers', {
+    return postWithResult<CancelAllTradeOffersResult>('/cancel-all-trade-offers', {
       tradeOfferIds: tradeOffers.map((offer) => offer.tradeOfferId!),
     })
   },
