@@ -55,12 +55,16 @@ function getPlayerName(prize: Prize) {
         <KeyStock />
         <div v-for="prize in prizesWithItems" :key="prize.discordId">
           <h2>Prizes for {{ prize.discordFullName }}</h2>
-          <div class="text-center"> Keys assigned to {{ prize.discordFullName }}: {{ prize.keys }} </div>
+          <div class="text-center">
+            Keys assigned to {{ prize.discordFullName }}: {{ prize.keys }}
+          </div>
           <template v-if="prize.items.length > 0">
             <h3>Items assigned to {{ prize.discordFullName }}</h3>
             <div v-for="item in prize.items" :key="item.assetId" class="relative w-180">
               <DisplayItem :item="item" class="w-180" />
-              <div class="absolute top-1 right-0 text-xs text-gray-500"> Asset id: {{ item.assetId }} </div>
+              <div class="absolute top-1 right-0 text-xs text-gray-500">
+                Asset id: {{ item.assetId }}
+              </div>
             </div>
           </template>
         </div>

@@ -157,7 +157,9 @@ watch(isLoginPopupOpened, (opened) => {
           </div>
         </template>
         <div class="text-sm text-red-500">{{ error }}</div>
-        <SubmitButton @click="submit" :is-submitting="isSubmitting" class="button-green">Submit</SubmitButton>
+        <SubmitButton @click="submit" :is-submitting="isSubmitting" class="button-green"
+          >Submit</SubmitButton
+        >
       </div>
     </div>
   </dialog>

@@ -6,10 +6,10 @@ import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
-
-import SubmitButton from '@/components/SubmitButton.vue'
-import LoadingPage from '@/components/LoadingPage.vue'
 import { usePrizeStore } from '@/stores/prize'
+
+import LoadingPage from '@/components/LoadingPage.vue'
+import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
 const { addHasChanges, removeHasChanges } = appStore
@@ -30,7 +30,9 @@ function getTradeUrlError(player: Player) {
     return ''
   }
 
-  const sameTradeUrl = players.value.find((p) => p.discordId !== player.discordId && p.tradeUrl === tradeUrl)
+  const sameTradeUrl = players.value.find(
+    (p) => p.discordId !== player.discordId && p.tradeUrl === tradeUrl,
+  )
   if (sameTradeUrl) {
     return `Player '${sameTradeUrl.discordFullName}' already has this Trade Url`
   }
@@ -43,8 +45,8 @@ function getTradeUrlError(player: Player) {
 async function save() {
   if (hasChanges.value.has(playerStore.at)) {
     players.value
-    .filter(player => !player.tradeUrl && !!originalTradeUrls.get(player.discordId))
-    .forEach(player => prizeStore.removePrizeForPlayer(player))
+      .filter((player) => !player.tradeUrl && !!originalTradeUrls.get(player.discordId))
+      .forEach((player) => prizeStore.removePrizeForPlayer(player))
 
     if (hasChanges.value.has(prizeStore.at)) {
       await prizeStore.saveAsync()
@@ -56,12 +58,12 @@ async function save() {
 }
 
 function setOriginalTradeUrls() {
-  originalTradeUrls = new Map(players.value.map(player => [player.discordId, player.tradeUrl]))
+  originalTradeUrls = new Map(players.value.map((player) => [player.discordId, player.tradeUrl]))
 }
 
 function getRanks(player: Player) {
   return player.discordRanks
-    .map(rank => {
+    .map((rank) => {
       const color = '#' + rank.color.toString(16).padStart(6, '0')
       return `<span style="color: ${color}" class="text-white px-2 font-bold">${rank.name}</span>`
     })
@@ -74,15 +76,20 @@ watch(isPageLoading, () => {
   }
 })
 
-watch(players, (newPlayers) => {
-  console.log(originalTradeUrls.size)
-  if (newPlayers.some(player => !!getTradeUrlError(player))) {
-    removeHasChanges(playerStore.at)
-  } else if (originalTradeUrls.size > 0 && newPlayers.some(player => player.tradeUrl !== originalTradeUrls.get(player.discordId))) {
-    console.log(newPlayers.filter(player => player.tradeUrl !== originalTradeUrls.get(player.discordId)))
-    addHasChanges(playerStore.at)
-  }
-}, { deep: true })
+watch(
+  players,
+  (newPlayers) => {
+    if (newPlayers.some((player) => !!getTradeUrlError(player))) {
+      removeHasChanges(playerStore.at)
+    } else if (
+      originalTradeUrls.size > 0 &&
+      newPlayers.some((player) => player.tradeUrl !== originalTradeUrls.get(player.discordId))
+    ) {
+      addHasChanges(playerStore.at)
+    }
+  },
+  { deep: true },
+)
 
 onBeforeRouteLeave(() => {
   save()
@@ -91,11 +98,19 @@ onBeforeRouteLeave(() => {
 <template>
   <LoadingPage v-if="isPageLoading" :name="playerStore.at" />
   <div class="flex flex-col items-center" v-else>
-    <div class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4">
-      <SubmitButton @click="save" :disabled="!hasChanges.has(playerStore.at)" :is-submitting="isSaving.has(playerStore.at)" class="w-236 button-green">Save Players</SubmitButton>
+    <div
+      class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
+    >
+      <SubmitButton
+        @click="save"
+        :disabled="!hasChanges.has(playerStore.at)"
+        :is-submitting="isSaving.has(playerStore.at)"
+        class="w-236 button-green"
+        >Save Players</SubmitButton
+      >
     </div>
     <h3>Players</h3>
-    <table class="table-fixed w-352 bg-slate-700 text-white">
+    <table class="w-352 table-fixed bg-slate-700 text-white">
       <thead>
         <tr>
           <th class="w-80">Ranks</th>
@@ -105,10 +120,13 @@ onBeforeRouteLeave(() => {
       </thead>
       <tbody class="divide-y-2 divide-gray-400">
         <tr v-for="player in players" :key="player.discordId">
-          <td class="px-2 w-80" v-html="getRanks(player)"></td>
+          <td class="w-80 px-2" v-html="getRanks(player)"></td>
           <td class="w-100 px-2">{{ player.discordFullName }}</td>
           <td class="w-172 py-1 pr-2">
-            <input v-model="player.tradeUrl" class="w-full custom-input rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700">
+            <input
+              v-model="player.tradeUrl"
+              class="custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
+            />
             <span class="text-fuchsia-400">{{ getTradeUrlError(player) }}</span>
           </td>
         </tr>

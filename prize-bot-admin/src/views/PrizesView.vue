@@ -22,7 +22,7 @@ import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
-const { hasChanges, isLoading, isSaving } = storeToRefs(appStore)
+const { hasChanges, isLoading, isSaving, isReloading } = storeToRefs(appStore)
 
 const inventoryStore = useInventoryStore()
 const { inventory } = storeToRefs(inventoryStore)
@@ -47,7 +47,11 @@ const sortedItems = reactive<{ assignedItems: UniqueItem[]; unassignedItems: Uni
 
 const playersWithTradeUrls = computed(() => players.value.filter((player) => !!player.tradeUrl))
 const isPageLoading = computed(
-  () => !isLoading || isLoading.value.has(playerStore.at) || isLoading.value.has(prizeStore.at),
+  () =>
+    !isLoading ||
+    isLoading.value.has(playerStore.at) ||
+    isLoading.value.has(prizeStore.at) ||
+    isReloading.value,
 )
 
 let selectedPrize: Prize | null
@@ -63,7 +67,7 @@ function tryAddItemToPrize(item: UniqueItem) {
 }
 
 function tryRemoveItemFromPrize(item: UniqueItem) {
-  if (!selectedPlayer || !selectedPrize) return
+  if (!selectedPlayer || !selectedPrize || isSaving.value.has(prizeStore.at)) return
 
   removeItemFromPrize(selectedPrize, item)
   const idx = sortedItems.assignedItems.findIndex((i) => i.assetId === item.assetId)
