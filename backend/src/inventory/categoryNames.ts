@@ -1,5 +1,5 @@
 export const categoryNames = {
   wear: 'Exterior',
   quality: 'Quality',
-  type: 'Type'
+  type: 'Type',
 } as const

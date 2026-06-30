@@ -6,5 +6,5 @@ export const descriptionValues = {
   strange: 'Strange Stat Clock Attached',
   festivized: 'Festivized',
   crafted: 'Crafted by',
-  gifted: '\nGift from:'
+  gifted: '\nGift from:',
 } as const

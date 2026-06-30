@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "sortImports": {
+    "newlinesBetween": true,
+    "groups": [
+      [
+        "value-builtin",
+        "value-external"
+      ],
+      "value-internal",
+      [
+        "value-parent",
+        "value-sibling",
+        "value-index"
+      ],
+      "unknown"
+    ]
+  },
+  "sortTailwindcss": {
+    "stylesheet": "./src/index.css",
+    "functions": [
+      "clsx",
+      "cn"
+    ],
+    "preserveWhitespace": true
+  }
+}

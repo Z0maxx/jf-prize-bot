@@ -1,17 +1,29 @@
-import SteamCommunity from 'steamcommunity'
-import SteamUser from 'steam-user';
+import {
+  CancelTradeOfferResult,
+  Player,
+  Prize,
+  PrizeTradeOffer,
+  sendPrizesKnownError,
+  SteamAuthActionResult,
+  SteamCredentials,
+  prizeTradeOfferState,
+  UniqueItem,
+  SendPrizesResult,
+} from '@jf-prize-bot/schema'
 import TradeOfferManager, { EOfferFilter, ETradeOfferState } from 'steam-tradeoffer-manager'
-import { CancelTradeOfferResult, Player, Prize, PrizeTradeOffer, sendPrizesKnownError, SteamAuthActionResult, SteamCredentials, prizeTradeOfferState, UniqueItem, SendPrizesResult } from '@jf-prize-bot/schema';
-import { keyClassId } from './inventory/inventory';
-import CEconItem from 'steamcommunity/classes/CEconItem';
-import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer';
+import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer'
+import SteamUser from 'steam-user'
+import SteamCommunity from 'steamcommunity'
+import CEconItem from 'steamcommunity/classes/CEconItem'
 
-const client = new SteamUser();
+import { keyClassId } from './inventory/inventory'
+
+const client = new SteamUser()
 const community = new SteamCommunity()
 const manager = new TradeOfferManager({
-  "steam": client,
-  "domain": "localhost",
-  "language": "en"
+  steam: client,
+  domain: 'localhost',
+  language: 'en',
 })
 
 let loggedIn = false
@@ -33,7 +45,7 @@ client.on('steamGuard', (_, callback) => {
 })
 
 client.on('loggedOn', function () {
-  loggedIn = true;
+  loggedIn = true
 })
 
 client.on('error', (err) => {
@@ -64,26 +76,24 @@ export function isLoggedIn() {
 export async function setSteamGuardCodeAsync(code: string): Promise<SteamAuthActionResult> {
   needsSteamGuardCode = false
   steamGuardCode = code
-  return new Promise(res => {
+  return new Promise((res) => {
     const interval = setInterval(() => {
       if (loggedIn) {
         clearInterval(interval)
         res({
-          success: true
+          success: true,
         })
-      }
-      else if (error) {
+      } else if (error) {
         clearInterval(interval)
         res({
           success: false,
-          error
+          error,
         })
-      }
-      else if (needsSteamGuardCode) {
+      } else if (needsSteamGuardCode) {
         clearInterval(interval)
         res({
           success: false,
-          error: SteamUser.EResult.TwoFactorCodeMismatch
+          error: SteamUser.EResult.TwoFactorCodeMismatch,
         })
       }
     }, 100)
@@ -91,7 +101,7 @@ export async function setSteamGuardCodeAsync(code: string): Promise<SteamAuthAct
 }
 
 export async function logInAsync(credentials: SteamCredentials): Promise<SteamAuthActionResult> {
-  return new Promise(res => {
+  return new Promise((res) => {
     loggedIn = false
     error = null
     needsSteamGuardCode = false
@@ -101,35 +111,40 @@ export async function logInAsync(credentials: SteamCredentials): Promise<SteamAu
         if (needsSteamGuardCode) {
           clearInterval(interval)
           res({
-            success: true
+            success: true,
           })
-        }
-        else if (error) {
+        } else if (error) {
           clearInterval(interval)
           res({
             success: false,
-            error
+            error,
           })
         }
       }, 100)
-    }
-    catch {
+    } catch {
       res({
-        success: true
+        success: true,
       })
     }
   })
 }
 
-export async function sendPrizesAsync(players: Player[], prizes: Prize[], uniqueItems: UniqueItem[]): Promise<SendPrizesResult> {
+export async function sendPrizesAsync(
+  players: Player[],
+  prizes: Prize[],
+  uniqueItems: UniqueItem[],
+): Promise<SendPrizesResult> {
   await waitForWebSession()
   return sendPrizesAsyncInternal(players, prizes, uniqueItems)
 }
 
-export async function cancelPrizeTradeOfferAsync(tradeOfferId: string, offers?: TradeOffer[]): Promise<CancelTradeOfferResult> {
+export async function cancelPrizeTradeOfferAsync(
+  tradeOfferId: string,
+  offers?: TradeOffer[],
+): Promise<CancelTradeOfferResult> {
   await waitForWebSession()
-  offers = offers ?? await getAllSentOffersAsync()
-  const offer = offers.find(offer => offer.id === tradeOfferId)
+  offers = offers ?? (await getAllSentOffersAsync())
+  const offer = offers.find((offer) => offer.id === tradeOfferId)
   if (offer) {
     return await cancelTradeOfferAsync(offer)
   }
@@ -138,14 +153,18 @@ export async function cancelPrizeTradeOfferAsync(tradeOfferId: string, offers?: 
     success: false,
     tradeOfferId,
     error: 'Trade offer not found',
-    state: prizeTradeOfferState.unknown
+    state: prizeTradeOfferState.unknown,
   }
 }
 
-export async function cancelAllPrizeTradeOffersAsync(tradeOfferIds: string[]): Promise<CancelTradeOfferResult[]> {
+export async function cancelAllPrizeTradeOffersAsync(
+  tradeOfferIds: string[],
+): Promise<CancelTradeOfferResult[]> {
   await waitForWebSession()
   const offers = await getAllSentOffersAsync()
-  const offerPromises = tradeOfferIds.map(tradeOfferId => cancelPrizeTradeOfferAsync(tradeOfferId, offers))
+  const offerPromises = tradeOfferIds.map((tradeOfferId) =>
+    cancelPrizeTradeOfferAsync(tradeOfferId, offers),
+  )
   return Promise.all(offerPromises)
 }
 
@@ -155,7 +174,7 @@ export async function updatePrizeTradeOfferStatesAsync(prizeOffers: PrizeTradeOf
 }
 
 function waitForWebSession() {
-  return new Promise<null>(res => {
+  return new Promise<null>((res) => {
     const interval = setInterval(() => {
       if (hasWebSession) {
         clearInterval(interval)
@@ -167,12 +186,11 @@ function waitForWebSession() {
 
 async function updatePrizeTradeOfferStatesAsyncInternal(prizeOffers: PrizeTradeOffer[]) {
   const offers = await getAllSentOffersAsync()
-  prizeOffers.forEach(prizeOffer => {
-    const offer = offers.find(offer => offer.id === prizeOffer.tradeOfferId)
+  prizeOffers.forEach((prizeOffer) => {
+    const offer = offers.find((offer) => offer.id === prizeOffer.tradeOfferId)
     if (offer) {
       prizeOffer.state = getPrizeOfferState(offer)
-    }
-    else {
+    } else {
       prizeOffer.state = prizeTradeOfferState.unknown
     }
   })
@@ -236,14 +254,14 @@ function getAllSentOffersAsync() {
 }
 
 function cancelTradeOfferAsync(offer: TradeOffer): Promise<CancelTradeOfferResult> {
-  return new Promise(res => {
+  return new Promise((res) => {
     offer.cancel((err) => {
       if (err) {
         res({
           success: false,
           tradeOfferId: offer.id!,
           state: getPrizeOfferState(offer),
-          error: err.message
+          error: err.message,
         })
 
         return
@@ -252,127 +270,138 @@ function cancelTradeOfferAsync(offer: TradeOffer): Promise<CancelTradeOfferResul
       res({
         success: true,
         state: prizeTradeOfferState.canceled,
-        tradeOfferId: offer.id!
+        tradeOfferId: offer.id!,
       })
     })
   })
 }
 
-async function sendPrizesAsyncInternal(players: Player[], prizes: Prize[], uniqueItems: UniqueItem[]): Promise<SendPrizesResult> {
+async function sendPrizesAsyncInternal(
+  players: Player[],
+  prizes: Prize[],
+  uniqueItems: UniqueItem[],
+): Promise<SendPrizesResult> {
   try {
     const inventory = await getInventoryAsync()
-    const allKeysAssigned = prizes
-      .map(prize => prize.keys)
-      .reduce((acc, curr) => acc + curr, 0)
+    const allKeysAssigned = prizes.map((prize) => prize.keys).reduce((acc, curr) => acc + curr, 0)
 
-    const assetIdsInOffers = new Set((await getSentActiveOffersAsync())
-      .flatMap(offer => offer.itemsToGive)
-      .map(item => item.assetid))
+    const assetIdsInOffers = new Set(
+      (await getSentActiveOffersAsync())
+        .flatMap((offer) => offer.itemsToGive)
+        .map((item) => item.assetid),
+    )
 
-    const availableKeysInInventory = inventory.filter(item => item.classid.toString() === keyClassId && !assetIdsInOffers.has(item.assetid))
+    const availableKeysInInventory = inventory.filter(
+      (item) => item.classid.toString() === keyClassId && !assetIdsInOffers.has(item.assetid),
+    )
     if (allKeysAssigned > availableKeysInInventory.length) {
       return {
         success: false,
-        error: sendPrizesKnownError.notEnoughAvailableKeys
+        error: sendPrizesKnownError.notEnoughAvailableKeys,
       }
     }
 
-    const inventoryAssetIds = inventory.map(item => item.assetid.toString())
-    const prizeAssetIds = prizes.flatMap(prize => prize.assetIds)
-    const itemsNotFound = prizeAssetIds.filter(assetId => !inventoryAssetIds.includes(assetId))
+    const inventoryAssetIds = inventory.map((item) => item.assetid.toString())
+    const prizeAssetIds = prizes.flatMap((prize) => prize.assetIds)
+    const itemsNotFound = prizeAssetIds.filter((assetId) => !inventoryAssetIds.includes(assetId))
     if (itemsNotFound.length > 0) {
       return {
         success: false,
         error: sendPrizesKnownError.itemsNotFound,
-        itemsNotFound
+        itemsNotFound,
       }
     }
 
-    const itemsInTradeOffer = prizeAssetIds.filter(assetId => assetIdsInOffers.has(assetId))
+    const itemsInTradeOffer = prizeAssetIds.filter((assetId) => assetIdsInOffers.has(assetId))
     if (itemsInTradeOffer.length > 0) {
       return {
         success: false,
         error: sendPrizesKnownError.itemsInTradeOffer,
-        itemsInTradeOffer
+        itemsInTradeOffer,
       }
     }
 
-    const playerIds = players.map(player => player.discordId)
+    const playerIds = players.map((player) => player.discordId)
     const playersNotFound = prizes
-      .flatMap(prize => prize.discordId)
-      .filter(id => !playerIds.includes(id))
+      .flatMap((prize) => prize.discordId)
+      .filter((id) => !playerIds.includes(id))
 
     if (playersNotFound.length > 0) {
       return {
         success: false,
         error: sendPrizesKnownError.playersNotFound,
-        playersNotFound
+        playersNotFound,
       }
     }
 
     let errorsWithTradeOffer = false
-    const offerPromises = prizes.map(prize => new Promise<PrizeTradeOffer>(offerRes => {
-      const player = players.find(player => player.discordId === prize.discordId)!
-      const offer = manager.createOffer(player.tradeUrl!)
-      const items = inventory.filter(item => prize.assetIds.includes(item.assetid.toString()))
-      const assignedKeys: CEconItem[] = []
-      while (assignedKeys.length < prize.keys) {
-        assignedKeys.push(availableKeysInInventory.shift()!)
-      }
+    const offerPromises = prizes.map(
+      (prize) =>
+        new Promise<PrizeTradeOffer>((offerRes) => {
+          const player = players.find((player) => player.discordId === prize.discordId)!
+          const offer = manager.createOffer(player.tradeUrl!)
+          const items = inventory.filter((item) => prize.assetIds.includes(item.assetid.toString()))
+          const assignedKeys: CEconItem[] = []
+          while (assignedKeys.length < prize.keys) {
+            assignedKeys.push(availableKeysInInventory.shift()!)
+          }
 
-      offer.addMyItems(items)
-      offer.addMyItems(assignedKeys)
-      offer.setMessage("Prize for " + player.discordFullName)
-      offer.send(err => {
-        if (err) {
-          const errorMessage = `Offer failed with: ${err.message}, ${err.cause ?? 'Wrong trade url or Steam is overloaded'}`
-          errorsWithTradeOffer = true
-          console.log(`'${player.discordFullName}': ${errorMessage}`)
-          offerRes({
-            id: crypto.randomUUID(),
-            state: prizeTradeOfferState.failed,
-            discordId: player.discordId,
-            error: errorMessage,
-          })
-        }
-        else {
-          offerRes({
-            id: crypto.randomUUID(),
-            tradeOfferId: offer.id!,
-            state: prizeTradeOfferState.unconfirmed,
-            discordId: player.discordId,
-            keys: prize.keys,
-            items: uniqueItems.filter(item => prize.assetIds.includes(item.assetId))
-          })
+          offer.addMyItems(items)
+          offer.addMyItems(assignedKeys)
+          offer.setMessage('Prize for ' + player.discordFullName)
+          offer.send((err) => {
+            if (err) {
+              const errorMessage = `Offer failed with: ${err.message}, ${err.cause ?? 'Wrong trade url or Steam is overloaded'}`
+              errorsWithTradeOffer = true
+              console.log(`'${player.discordFullName}': ${errorMessage}`)
+              offerRes({
+                id: crypto.randomUUID(),
+                state: prizeTradeOfferState.failed,
+                discordId: player.discordId,
+                error: errorMessage,
+              })
+            } else {
+              offerRes({
+                id: crypto.randomUUID(),
+                tradeOfferId: offer.id!,
+                state: prizeTradeOfferState.unconfirmed,
+                discordId: player.discordId,
+                keys: prize.keys,
+                items: uniqueItems.filter((item) => prize.assetIds.includes(item.assetId)),
+              })
 
-          console.log(`Offer for '${player.discordFullName}' with id #${offer.id} sent successfully`)
-        }
-      })
-    }))
+              console.log(
+                `Offer for '${player.discordFullName}' with id #${offer.id} sent successfully`,
+              )
+            }
+          })
+        }),
+    )
 
     const tradeOffers = await Promise.all(offerPromises)
     if (errorsWithTradeOffer) {
       const failedToSendPrizesTo = tradeOffers
-        .filter(offer => offer.state === prizeTradeOfferState.failed)
-        .map(offer => offer.discordId)
+        .filter((offer) => offer.state === prizeTradeOfferState.failed)
+        .map((offer) => offer.discordId)
 
       return {
         success: false,
         error: sendPrizesKnownError.hasFailedTradeOffers,
         tradeOffers,
-        failedToSendPrizes: prizes.filter(prize => failedToSendPrizesTo.includes(prize.discordId))
+        failedToSendPrizes: prizes.filter((prize) =>
+          failedToSendPrizesTo.includes(prize.discordId),
+        ),
       }
     }
 
     return {
       success: true,
-      tradeOffers
+      tradeOffers,
     }
-  }
-  catch (err: any) {
+  } catch (err: any) {
     return {
       success: false,
-      error: (err as string)
+      error: err as string,
     }
   }
 }

@@ -1,5 +1,6 @@
-import { PrizeTradeOffer } from "@jf-prize-bot/schema";
-import { getListFromSheetAsync, saveListToSheetAsync } from "./sheets";
+import { PrizeTradeOffer } from '@jf-prize-bot/schema'
+
+import { getListFromSheetAsync, saveListToSheetAsync } from './sheets'
 
 const sheetName = 'TradeOffers'
 export async function saveTradeOffersAsync(tradeOffers: PrizeTradeOffer[]) {

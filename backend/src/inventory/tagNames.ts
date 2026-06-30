@@ -5,5 +5,5 @@ export const tagNames = {
   skin: 'Decorated Weapon',
   primaryWeapon: 'Primary weapon',
   secondaryWeapon: 'Secondary weapon',
-  meleeWeapon: 'Melee weapon'
+  meleeWeapon: 'Melee weapon',
 } as const

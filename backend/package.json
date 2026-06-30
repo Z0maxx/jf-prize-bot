@@ -11,11 +11,13 @@
     "@types/node": "26.0.0",
     "nodemon": "3.1.14",
     "ts-node": "10.9.2",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "oxfmt": "^0.45.0"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/server.js",
-    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts"
+    "dev": "nodemon --watch 'src/**/*.ts' --exec ts-node src/server.ts",
+    "format": "oxfmt src/"
   }
 }

@@ -1,7 +1,8 @@
-import { categoryNames } from "./inventory/categoryNames"
-import { descriptionValues } from "./inventory/descriptionValues"
-import { tagNames } from "./inventory/tagNames"
-import { DiscordRank, Player, Prize, UniqueItem } from "@jf-prize-bot/schema"
+import { DiscordRank, Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
+
+import { categoryNames } from './inventory/categoryNames'
+import { descriptionValues } from './inventory/descriptionValues'
+import { tagNames } from './inventory/tagNames'
 
 export type DiscordRole = {
   id: string
@@ -77,7 +78,7 @@ export type InventoryResponse = {
 }
 
 export type Inventory = {
-  keys: number,
+  keys: number
   items: UniqueItem[]
 }
 
