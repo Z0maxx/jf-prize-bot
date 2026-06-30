@@ -37,6 +37,7 @@ const steamGuardCodeLength = SteamGuardCodeSchema.shape.steamGuardCode.minLength
 
 async function submit() {
   hasError = false
+  resetErrors()
   if (mode.value === 'login') {
     if (credentials.accountName.trim() === '') {
       accountNameError.value = 'Account Name is required'
@@ -167,8 +168,9 @@ watch(isLoginPopupOpened, (opened) => {
             />
           </div>
         </template>
-        <div class="text-sm text-red-500">{{ error }}</div>
-        <SubmitButton @click="submit" :is-submitting="isSubmitting" class="button-green"
+        <div class="text-sm text-red-500">{{ steamGuardCodeError }}</div>
+        <div class="text-red-500">{{ error }}</div>
+        <SubmitButton @click="submit" :is-submitting="isSubmitting" :disabled="isSubmitting" class="button-green"
           >Submit</SubmitButton
         >
       </div>
