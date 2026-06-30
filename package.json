@@ -11,7 +11,6 @@
   "devDependencies": {
     "concurrently": "10.0.3",
     "serve": "14.2.6",
-    "@types/steam-totp": "2.1.2",
     "@types/steam-tradeoffer-manager": "2.11.2",
     "@types/steam-user": "5.1.1",
     "@types/steamcommunity": "3.50.0"
