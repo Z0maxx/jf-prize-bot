@@ -1,10 +1,5 @@
 <script setup lang="ts">
-import {
-  prizeTradeOfferState,
-  type Player,
-  type Prize,
-  type UniqueItem,
-} from '@jf-prize-bot/schema'
+import { type Player, type Prize, type UniqueItem } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 import { computed, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
@@ -14,7 +9,7 @@ import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
 import { useTradeOfferStore } from '@/stores/tradeOffer'
-import { isActiveTradeOffer } from '@/utils'
+import { getRanksSpans } from '@/utils'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
@@ -35,7 +30,7 @@ const { getPrizeForPlayer, setKeysForPrize, addItemToPrize, removeItemFromPrize 
 const { prizes } = storeToRefs(prizeStore)
 
 const tradeOfferStore = useTradeOfferStore()
-const { tradeOffers } = storeToRefs(tradeOfferStore)
+const { activeTradeOffers } = storeToRefs(tradeOfferStore)
 
 const keys = ref(0)
 const selectedDiscordId = ref('')
@@ -52,6 +47,10 @@ const isPageLoading = computed(
     isLoading.value.has(playerStore.at) ||
     isLoading.value.has(prizeStore.at) ||
     isReloading.value,
+)
+
+const isSaveButtonDisabled = computed(
+  () => !hasChanges.value.has(prizeStore.at) || isSaving.value.has(prizeStore.at),
 )
 
 let selectedPrize: Prize | null
@@ -76,8 +75,8 @@ function tryRemoveItemFromPrize(item: UniqueItem) {
 }
 
 watch(
-  [() => inventory.value.items, prizes, tradeOffers, selectedDiscordId],
-  ([newItems, newPrizes, newTradeOffers, newDiscordId]) => {
+  [() => inventory.value.items, prizes, activeTradeOffers, selectedDiscordId],
+  ([newItems, newPrizes, newActiveTradeOffers, newDiscordId]) => {
     selectedPlayer = players.value.find((player) => player.discordId === newDiscordId)!
     if (!selectedPlayer) {
       selectedPrize = null
@@ -91,8 +90,8 @@ watch(
     sortedItems.assignedItems = []
     sortedItems.unassignedItems = []
     const itemsInLimboAssetIds = new Set(
-      newTradeOffers
-        .filter((offer) => !!offer.items && isActiveTradeOffer(offer))
+      newActiveTradeOffers
+        .filter((offer) => !!offer.items)
         .flatMap((offer) => offer.items!.map((item) => item.assetId)),
     )
 
@@ -136,23 +135,28 @@ onBeforeRouteLeave(() => {
     <h1 v-if="playersWithTradeUrls.length === 0">There are no players with Trade Urls</h1>
     <div
       v-else
-      class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
+      class="sticky top-0 z-50 flex w-full flex-col items-center gap-4 border-b-2 border-blue-500 bg-blue-300 py-4"
     >
       <div class="flex w-180 gap-4">
         <SubmitButton
           @click="prizeStore.saveAsync"
-          :disabled="!hasChanges.has(prizeStore.at)"
+          :disabled="isSaveButtonDisabled"
           :is-submitting="isSaving.has(prizeStore.at)"
           class="w-full button-green"
           >Save Prizes</SubmitButton
         >
       </div>
-      <select v-model="selectedDiscordId" class="mt-4">
+      <select v-model="selectedDiscordId">
         <option value="" disabled hidden>Select a Player</option>
         <option v-for="player in playersWithTradeUrls" :value="player.discordId">
           {{ player.discordFullName }}
         </option>
       </select>
+      <div
+        v-if="selectedPlayer"
+        v-html="getRanksSpans(selectedPlayer)"
+        class="flex items-center gap-4 rounded-md bg-slate-700 px-2 py-1"
+      ></div>
     </div>
     <template v-if="selectedPlayer">
       <h2>Keys</h2>

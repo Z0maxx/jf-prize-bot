@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { tradeUrlRegex, type Player } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
+import { getRanksSpans } from '@/utils'
 
 import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -21,6 +22,12 @@ const { players } = storeToRefs(playerStore)
 const prizeStore = usePrizeStore()
 
 const isPageLoading = computed(() => !isLoading || isLoading.value.has(playerStore.at))
+const isSaveButtonDisabled = computed(
+  () =>
+    !hasChanges.value.has(playerStore.at) ||
+    isSaving.value.has(playerStore.at) ||
+    isSaving.value.has(prizeStore.at),
+)
 
 let originalTradeUrls = new Map<string, string | undefined>()
 
@@ -63,15 +70,6 @@ function setOriginalTradeUrls() {
   originalTradeUrls = new Map(players.value.map((player) => [player.discordId, player.tradeUrl]))
 }
 
-function getRanks(player: Player) {
-  return player.discordRanks
-    .map((rank) => {
-      const color = '#' + rank.color.toString(16).padStart(6, '0')
-      return `<span style="color: ${color}" class="text-white px-2 font-bold">${rank.name}</span>`
-    })
-    .join('')
-}
-
 function trim(e: InputEvent) {
   const target = e.target! as HTMLInputElement
   target.value = target.value.trim()
@@ -104,6 +102,12 @@ watch(
 onBeforeRouteLeave(() => {
   save()
 })
+
+onMounted(() => {
+  if (!isPageLoading.value) {
+    setOriginalTradeUrls()
+  }
+})
 </script>
 <template>
   <LoadingPage v-if="isPageLoading" :name="playerStore.at" />
@@ -113,7 +117,7 @@ onBeforeRouteLeave(() => {
     >
       <SubmitButton
         @click="save"
-        :disabled="!hasChanges.has(playerStore.at)"
+        :disabled="isSaveButtonDisabled"
         :is-submitting="isSaving.has(playerStore.at)"
         class="w-236 button-green"
         >Save Players</SubmitButton
@@ -130,7 +134,7 @@ onBeforeRouteLeave(() => {
       </thead>
       <tbody class="divide-y-2 divide-gray-400">
         <tr v-for="player in players" :key="player.discordId">
-          <td class="w-80 px-2" v-html="getRanks(player)"></td>
+          <td class="w-80 px-2 [&_span]:px-2" v-html="getRanksSpans(player)"></td>
           <td class="w-100 px-2">{{ player.discordFullName }}</td>
           <td class="w-172 py-1 pr-2">
             <input

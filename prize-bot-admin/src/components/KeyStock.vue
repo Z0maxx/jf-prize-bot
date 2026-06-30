@@ -6,7 +6,6 @@ import { computed } from 'vue'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePrizeStore } from '@/stores/prize'
 import { useTradeOfferStore } from '@/stores/tradeOffer'
-import { isActiveTradeOffer } from '@/utils'
 
 const inventoryStore = useInventoryStore()
 const { inventory } = storeToRefs(inventoryStore)
@@ -15,15 +14,14 @@ const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
 
 const tradeOfferStore = useTradeOfferStore()
-const { tradeOffers } = storeToRefs(tradeOfferStore)
+const { activeTradeOffers } = storeToRefs(tradeOfferStore)
 
 const prizeKeys = computed(() =>
   prizes.value.map((prize) => prize.keys).reduce((acc, curr) => acc + curr, 0),
 )
 
 const keysInTradeOffers = computed(() =>
-  tradeOffers.value
-    .filter((offer) => isActiveTradeOffer(offer))
+  activeTradeOffers.value
     .flatMap((offer) => offer.keys ?? 0)
     .reduce((acc, curr) => acc + curr, 0),
 )

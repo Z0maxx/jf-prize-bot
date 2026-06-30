@@ -104,7 +104,7 @@ export const api = {
     })
   },
 
-  deleteAllTradeOffers() {
-    return post('/delete-trade-offers')
+  deleteTradeOfferHistory() {
+    return post('/delete-trade-offer-history')
   },
 }

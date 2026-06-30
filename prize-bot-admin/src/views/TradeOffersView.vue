@@ -5,9 +5,8 @@ import {
   type PrizeTradeOfferState,
 } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 
-import { api } from '@/api'
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
 import { useTradeOfferStore } from '@/stores/tradeOffer'
@@ -21,30 +20,23 @@ const appStore = useAppStore()
 const { isLoggedIn, isLoading } = storeToRefs(appStore)
 
 const tradeOfferStore = useTradeOfferStore()
-const { tradeOffers } = storeToRefs(tradeOfferStore)
+const { tradeOffers, isDeletingAll, isCancellingAll, isCancelling, cancellingRefs, activeTradeOffers } =
+  storeToRefs(tradeOfferStore)
 
 const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
-
-const cancellingAll = ref(false)
-const deletingAll = ref(false)
 
 const isPageLoading = computed(
   () =>
     !isLoading || isLoading.value.has(playerStore.at) || isLoading.value.has(tradeOfferStore.at),
 )
 
-const anyCanBeCanceled = computed(() =>
-  tradeOffers.value.some((offer) => isActiveTradeOffer(offer)),
+const isButtonDisabled = computed(
+  () => isDeletingAll.value || isCancellingAll.value || isCancelling.value,
 )
 
-const cancellingRefs = computed(
-  () =>
-    new Map(
-      tradeOffers.value
-        .filter((offer) => isActiveTradeOffer(offer))
-        .map((offer) => [offer.id!, ref(false)]),
-    ),
+const anyCanBeCanceled = computed(() =>
+  activeTradeOffers.value.length > 0,
 )
 
 const stateColors: Record<PrizeTradeOfferState, string> = {
@@ -71,10 +63,7 @@ function setState(result: CancelTradeOfferResult) {
 }
 
 async function cancel(offer: PrizeTradeOffer) {
-  const cancelling = cancellingRefs.value.get(offer.id!)!
-  cancelling.value = true
-  const result = await api.cancelTradeOffer(offer)
-  cancelling.value = false
+  const result = await tradeOfferStore.cancelAsync(offer)
   setState(result)
   if (!result.success) {
     alert('Failed to cancel trade offer: ' + result.error)
@@ -95,10 +84,7 @@ async function tryCancel(offer: PrizeTradeOffer) {
 }
 
 async function cancelAll() {
-  cancellingAll.value = true
-  const activeTradeOffers = tradeOffers.value.filter((offer) => isActiveTradeOffer(offer))
-  const results = await api.cancelAllTradeOffers(activeTradeOffers)
-  cancellingAll.value = false
+  const results = await tradeOfferStore.cancelAllAsync()
   results.forEach((result) => setState(result))
   const failed = results
     .filter((result) => !result.success)
@@ -119,13 +105,6 @@ async function tryCancelAll() {
       cancelAll()
     }
   }
-}
-
-async function deleteAll() {
-  deletingAll.value = true
-  await api.deleteAllTradeOffers()
-  tradeOfferStore.setTradeOffers([])
-  deletingAll.value = false
 }
 
 watch(isLoggedIn, (newIsLoggedIn) => {
@@ -149,12 +128,17 @@ watch(isLoggedIn, (newIsLoggedIn) => {
       <div class="flex w-180 gap-4">
         <SubmitButton
           @click="tryCancelAll"
-          :is-submitting="cancellingAll"
+          :is-submitting="isCancellingAll"
+          :disabled="isButtonDisabled"
           class="w-full button-amber"
           >Cancel All Trade Offers</SubmitButton
         >
-        <SubmitButton @click="deleteAll" :is-submitting="deletingAll" class="w-full button-rose"
-          >Clear History</SubmitButton
+        <SubmitButton
+          @click="tradeOfferStore.deleteHistoryAsync"
+          :is-submitting="isDeletingAll"
+          :disabled="isButtonDisabled"
+          class="w-full button-rose"
+          >Clear Inactive History</SubmitButton
         >
       </div>
     </div>
@@ -169,6 +153,7 @@ watch(isLoggedIn, (newIsLoggedIn) => {
           v-if="isActiveTradeOffer(offer)"
           @click="tryCancel(offer)"
           :is-submitting="cancellingRefs.get(offer.id!)!.value"
+          :disabled="isButtonDisabled"
           class="button-amber"
           >Cancel</SubmitButton
         >
