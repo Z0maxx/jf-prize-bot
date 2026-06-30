@@ -1,5 +1,6 @@
 import type {
   CancelTradeOfferResult,
+  ClearTradeOfferHistoryResult,
   Inventory,
   IsLoggedIn,
   Player,
@@ -104,7 +105,7 @@ export const api = {
     })
   },
 
-  deleteTradeOfferHistory() {
-    return post('/delete-trade-offer-history')
+  clearTradeOfferHistory() {
+    return postWithResult<ClearTradeOfferHistoryResult>('/clear-trade-offer-history')
   },
 }

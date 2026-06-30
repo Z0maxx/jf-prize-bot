@@ -126,9 +126,11 @@ export const TradeOfferIdsSchema = z.object({
   tradeOfferIds: z.array(TradeOfferIdSchema.shape.tradeOfferId)
 })
 
-export type CancelTradeOfferResult = {
-  success: boolean
+export type CancelTradeOfferResult = Result & {
   tradeOfferId: string
   state: PrizeTradeOfferState
-  error?: string | undefined
+}
+
+export type ClearTradeOfferHistoryResult = Result & {
+  activeTradeOffers?: PrizeTradeOffer[] | undefined
 }

@@ -12,7 +12,7 @@ const at = 'Trade Offers'
 export const useTradeOfferStore = defineStore('tradeOffer', () => {
   const tradeOffers = ref<PrizeTradeOffer[]>([])
   const activeTradeOffers = computed(() => tradeOffers.value.filter((offer) => isActiveTradeOffer(offer)))
-  const isDeletingAll = ref(false)
+  const isClearingHistory = ref(false)
   const isCancellingAll = ref(false)
   const isCancelling = ref(false)
   const cancellingRefs = computed(
@@ -35,11 +35,11 @@ export const useTradeOfferStore = defineStore('tradeOffer', () => {
     removeIsLoading(at)
   }
 
-  async function deleteHistoryAsync() {
-    /*isDeletingAll.value = true
-    await api.deleteTradeOfferHistoryAsync()
-    setTradeOffers(activeTradeOffers.value)
-    isDeletingAll.value = false*/
+  async function clearHistoryAsync() {
+    isClearingHistory.value = true
+    const result = await api.clearTradeOfferHistory()
+    isClearingHistory.value = false
+    return result
   }
 
   async function cancelAllAsync() {
@@ -63,13 +63,13 @@ export const useTradeOfferStore = defineStore('tradeOffer', () => {
     at,
     tradeOffers,
     activeTradeOffers,
-    isDeletingAll,
+    isClearingHistory,
     isCancellingAll,
     isCancelling,
     cancellingRefs,
     setTradeOffers,
     loadAsync,
-    deleteHistoryAsync,
+    clearHistoryAsync,
     cancelAllAsync,
     cancelAsync,
   }

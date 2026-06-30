@@ -17,6 +17,7 @@ import { getPrizesAsync, savePrizesAsync } from './prizes'
 import {
   cancelAllPrizeTradeOffersAsync,
   cancelPrizeTradeOfferAsync,
+  clearTradeOfferHistoryAsync,
   isLoggedIn,
   logInAsync,
   sendPrizesAsync,
@@ -185,9 +186,14 @@ app.post('/cancel-all-trade-offers', async (req, res) => {
   }
 })
 
-app.post('/delete-trade-offers', async (_, res) => {
-  await saveTradeOffersAsync([])
-  res.status(201).send()
+app.post('/clear-trade-offer-history', async (_, res) => {
+  const tradeOffers = await getTradeOffersAsync()
+  const result = await clearTradeOfferHistoryAsync(tradeOffers)
+  if (result.success) {
+    await saveTradeOffersAsync(result.activeTradeOffers!)
+  }
+
+  res.status(200).send(result)
 })
 
 app.listen(6520, () => console.log('Running'))

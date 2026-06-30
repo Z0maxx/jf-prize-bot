@@ -9,6 +9,7 @@ import {
   prizeTradeOfferState,
   UniqueItem,
   SendPrizesResult,
+  ClearTradeOfferHistoryResult,
 } from '@jf-prize-bot/schema'
 import TradeOfferManager, { EOfferFilter, ETradeOfferState } from 'steam-tradeoffer-manager'
 import TradeOffer from 'steam-tradeoffer-manager/lib/classes/TradeOffer'
@@ -171,6 +172,22 @@ export async function cancelAllPrizeTradeOffersAsync(
 export async function updatePrizeTradeOfferStatesAsync(prizeOffers: PrizeTradeOffer[]) {
   await waitForWebSession()
   await updatePrizeTradeOfferStatesAsyncInternal(prizeOffers)
+}
+
+export async function clearTradeOfferHistoryAsync(prizeOffers: PrizeTradeOffer[]): Promise<ClearTradeOfferHistoryResult> {
+  const activeOfferIds = (await getSentActiveOffersAsync()).map(offer => offer.id!)
+  try {
+    return {
+      success: true,
+      activeTradeOffers: prizeOffers.filter(prizeOffer => activeOfferIds.includes(prizeOffer.tradeOfferId!))
+    }
+  }
+  catch (err) {
+    return {
+      success: false,
+      error: err as string
+    }
+  }
 }
 
 function waitForWebSession() {

@@ -20,7 +20,7 @@ const appStore = useAppStore()
 const { isLoggedIn, isLoading } = storeToRefs(appStore)
 
 const tradeOfferStore = useTradeOfferStore()
-const { tradeOffers, isDeletingAll, isCancellingAll, isCancelling, cancellingRefs, activeTradeOffers } =
+const { tradeOffers, isClearingHistory, isCancellingAll, isCancelling, cancellingRefs, activeTradeOffers } =
   storeToRefs(tradeOfferStore)
 
 const playerStore = usePlayerStore()
@@ -32,7 +32,7 @@ const isPageLoading = computed(
 )
 
 const isButtonDisabled = computed(
-  () => isDeletingAll.value || isCancellingAll.value || isCancelling.value,
+  () => isClearingHistory.value || isCancellingAll.value || isCancelling.value,
 )
 
 const anyCanBeCanceled = computed(() =>
@@ -52,6 +52,7 @@ const stateColors: Record<PrizeTradeOfferState, string> = {
 
 let cancelAfterLogin: PrizeTradeOffer | null = null
 let cancelAllAfterLogin = false
+let clearHistoryAfterLogin = false
 
 function getPlayerName(offer: PrizeTradeOffer) {
   return players.value.find((player) => player.discordId === offer.discordId)!.discordFullName
@@ -107,17 +108,46 @@ async function tryCancelAll() {
   }
 }
 
-watch(isLoggedIn, (newIsLoggedIn) => {
-  if (newIsLoggedIn) {
-    if (cancelAfterLogin) {
-      cancel(cancelAfterLogin)
-      cancelAfterLogin = null
-    }
+async function clearHistory() {
+  const result = await tradeOfferStore.clearHistoryAsync()
+  if (result.success) {
+    tradeOfferStore.setTradeOffers(result.activeTradeOffers!)
+  }
+  else {
+    alert('Failed to fetch active trade offers: ' + result.error)
+  }
+}
 
-    if (cancelAllAfterLogin) {
-      cancelAllAfterLogin = false
-      cancelAll()
+async function tryClearHistory() {
+  if (confirm('Are you sure you want to clear inactive trade offer history?')) {
+    await appStore.setIsLoggedInAsync()
+    if (!isLoggedIn.value) {
+      appStore.setIsLoginPopupOpened(true)
+      clearHistoryAfterLogin = true
+    } else {
+      clearHistory()
     }
+  }
+}
+
+watch(isLoggedIn, (newIsLoggedIn) => {
+  if (!newIsLoggedIn) {
+    return
+  }
+
+  if (cancelAfterLogin) {
+    cancel(cancelAfterLogin)
+    cancelAfterLogin = null
+  }
+
+  if (cancelAllAfterLogin) {
+    cancelAllAfterLogin = false
+    cancelAll()
+  }
+
+  if (clearHistoryAfterLogin) {
+    clearHistoryAfterLogin = false
+    clearHistory()
   }
 })
 </script>
@@ -126,57 +156,26 @@ watch(isLoggedIn, (newIsLoggedIn) => {
   <template v-else>
     <div v-if="anyCanBeCanceled || tradeOffers.length > 0" class="mt-4 flex justify-center">
       <div class="flex w-180 gap-4">
-        <SubmitButton
-          @click="tryCancelAll"
-          :is-submitting="isCancellingAll"
-          :disabled="isButtonDisabled"
-          class="w-full button-amber"
-          >Cancel All Trade Offers</SubmitButton
-        >
-        <SubmitButton
-          @click="tradeOfferStore.deleteHistoryAsync"
-          :is-submitting="isDeletingAll"
-          :disabled="isButtonDisabled"
-          class="w-full button-rose"
-          >Clear Inactive History</SubmitButton
-        >
+        <SubmitButton @click="tryCancelAll" :is-submitting="isCancellingAll" :disabled="isButtonDisabled" class="w-full button-amber">Cancel All Trade Offers</SubmitButton>
+        <SubmitButton @click="tryClearHistory" :is-submitting="isClearingHistory" :disabled="isButtonDisabled" class="w-full button-rose">Clear Inactive History</SubmitButton>
       </div>
     </div>
     <h1 v-if="tradeOffers.length === 0">There are no Trade Offers</h1>
     <div v-for="offer in tradeOffers" :key="offer.id">
       <h2>Trade Offer for {{ getPlayerName(offer) }}</h2>
       <div class="flex flex-col items-center gap-2">
-        <span class="text-xs text-gray-500" v-if="offer.tradeOfferId"
-          >Id: {{ offer.tradeOfferId }}</span
-        >
-        <SubmitButton
-          v-if="isActiveTradeOffer(offer)"
-          @click="tryCancel(offer)"
-          :is-submitting="cancellingRefs.get(offer.id!)!.value"
-          :disabled="isButtonDisabled"
-          class="button-amber"
-          >Cancel</SubmitButton
-        >
-        <span
-          :class="[stateColors[offer.state]]"
-          class="rounded-md border-2 border-black px-2 py-1 font-medium"
-          >{{ offer.state }}</span
-        >
+        <span class="text-xs text-gray-500" v-if="offer.tradeOfferId">Id: {{ offer.tradeOfferId }}</span>
+        <SubmitButton v-if="isActiveTradeOffer(offer)" @click="tryCancel(offer)" :is-submitting="cancellingRefs.get(offer.id!)!.value" :disabled="isButtonDisabled" class="button-amber">Cancel</SubmitButton>
+        <span :class="[stateColors[offer.state]]" class="rounded-md border-2 border-black px-2 py-1 font-medium">{{ offer.state }}</span>
         <div v-if="offer.error">{{ offer.error }}</div>
       </div>
       <h3 v-if="offer.keys">Keys: {{ offer.keys }}</h3>
       <template v-if="offer.items">
         <div class="flex flex-col items-center">
           <h3>Sent Items</h3>
-          <div
-            v-for="item in offer.items"
-            :key="item.assetId"
-            class="relative flex w-180 cursor-pointer items-center"
-          >
+          <div v-for="item in offer.items" :key="item.assetId" class="relative flex w-180 cursor-pointer items-center">
             <DisplayItem :item="item" />
-            <div class="absolute top-1 right-0 text-xs text-gray-500">
-              Asset id: {{ item.assetId }}
-            </div>
+            <div class="absolute top-1 right-0 text-xs text-gray-500"> Asset id: {{ item.assetId }} </div>
           </div>
         </div>
       </template>
