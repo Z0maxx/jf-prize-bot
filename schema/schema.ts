@@ -1,5 +1,4 @@
-//@ts-ignore
-import EResult from "steam-user/enums/EResult"
+import type { EResult } from "steam-user"
 import { z } from "zod"
 
 export const tradeUrlRegex = /https?:\/\/steamcommunity\.com\/tradeoffer\/new\/\?partner=(\d+)&token=([a-zA-Z0-9_-]+)/

@@ -2,13 +2,15 @@
 import { SteamGuardCodeSchema, type SteamCredentials } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 //@ts-ignore
-import EResult from 'steam-user/enums/EResult'
+import * as EResultValue from 'steam-user/enums/EResult'
 import { reactive, ref, useTemplateRef, watch } from 'vue'
 
 import { api } from '@/api'
 import { useAppStore } from '@/stores/app'
 
 import SubmitButton from './SubmitButton.vue'
+
+const EResult = EResultValue as typeof import("steam-user").EResult
 
 const appStore = useAppStore()
 const { isLoginPopupOpened } = storeToRefs(appStore)
