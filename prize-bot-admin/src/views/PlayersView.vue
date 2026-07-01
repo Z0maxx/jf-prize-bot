@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { tradeUrlRegex, type Player } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
@@ -20,6 +20,9 @@ const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
 
 const prizeStore = usePrizeStore()
+
+const searchedPlayerName = ref('')
+const foundPlayers = ref<Player[]>([])
 
 const isPageLoading = computed(() => !isLoading || isLoading.value.has(playerStore.at))
 const isSaveButtonDisabled = computed(
@@ -99,6 +102,14 @@ watch(
   { deep: true },
 )
 
+watch(searchedPlayerName, () => {
+  foundPlayers.value = players.value.filter((player) =>
+    player.discordFullName
+      .toLocaleLowerCase()
+      .includes(searchedPlayerName.value.toLocaleLowerCase()),
+  )
+})
+
 onBeforeRouteLeave(() => {
   save()
 })
@@ -106,6 +117,7 @@ onBeforeRouteLeave(() => {
 onMounted(() => {
   if (!isPageLoading.value) {
     setOriginalTradeUrls()
+    foundPlayers.value = players.value
   }
 })
 </script>
@@ -124,28 +136,35 @@ onMounted(() => {
       >
     </div>
     <h3>Players</h3>
-    <table class="w-352 table-fixed bg-slate-700 text-white">
-      <thead>
-        <tr>
-          <th class="w-80">Ranks</th>
-          <th class="w-100">Full discord name</th>
-          <th class="w-172">Trade Url</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y-2 divide-gray-400">
-        <tr v-for="player in players" :key="player.discordId">
-          <td class="w-80 px-2 [&_span]:px-2" v-html="getRanksSpans(player)"></td>
-          <td class="w-100 px-2">{{ player.discordFullName }}</td>
-          <td class="w-172 py-1 pr-2">
-            <input
-              v-model="player.tradeUrl"
-              @input="trim"
-              class="custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
-            />
-            <span class="text-fuchsia-400">{{ getTradeUrlError(player) }}</span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div>
+      <input
+        v-model="searchedPlayerName"
+        placeholder="Search for a Player"
+        class="w-full text-center"
+      />
+      <table class="mt-2 w-352 table-fixed bg-slate-700 text-white">
+        <thead>
+          <tr>
+            <th class="w-80">Ranks</th>
+            <th class="w-100">Full discord name</th>
+            <th class="w-172">Trade Url</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y-2 divide-gray-400">
+          <tr v-for="player in foundPlayers" :key="player.discordId">
+            <td class="w-80 px-2 [&_span]:px-2" v-html="getRanksSpans(player)"></td>
+            <td class="w-100 px-2">{{ player.discordFullName }}</td>
+            <td class="w-172 py-1 pr-2">
+              <input
+                v-model="player.tradeUrl"
+                @input="trim"
+                class="custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
+              />
+              <span class="text-fuchsia-400">{{ getTradeUrlError(player) }}</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
