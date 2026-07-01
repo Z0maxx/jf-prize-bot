@@ -64,7 +64,7 @@ window.addEventListener('beforeunload', (e) => {
       }}</span>
     </div>
   </header>
-  <main>
+  <main class="mb-6">
     <RouterView />
   </main>
   <LoginPopup />
