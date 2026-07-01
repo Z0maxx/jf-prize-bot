@@ -111,5 +111,5 @@ select:not(.custom-select) {
 }
 
 th {
-  @apply text-left px-2 py-1
+  @apply px-2 py-1 text-left;
 }
