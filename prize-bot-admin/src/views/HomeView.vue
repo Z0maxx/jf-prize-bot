@@ -3,11 +3,13 @@ import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 import { useAppStore } from '@/stores/app'
+import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
+import { getRankColorHex } from '@/utils'
 
-import type { Prize } from '@jf-prize-bot/schema'
+import type { BountyPrizeGroup, DiscordRank, Player, Prize } from '@jf-prize-bot/schema'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
@@ -25,6 +27,9 @@ const { players } = storeToRefs(playerStore)
 const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
 
+const bountyPrizeGroupStore = useBountyPrizeGroupStore()
+const { bountyPrizeGroups } = storeToRefs(bountyPrizeGroupStore)
+
 const isPageLoading = computed(
   () => !isLoading || isLoading.value.has(prizeStore.at) || isLoading.value.has(playerStore.at),
 )
@@ -37,6 +42,7 @@ const prizesWithItems = computed(() =>
       return {
         discordId: prize.discordId,
         discordFullName: getPlayerName(prize),
+        completedBountyGroups: getCompletedBountyGroups(prize),
         keys: prize.keys,
         items,
       }
@@ -45,6 +51,33 @@ const prizesWithItems = computed(() =>
 
 function getPlayerName(prize: Prize) {
   return players.value.find((player) => player.discordId === prize.discordId)!.discordFullName
+}
+
+function getCompletedBountyGroups(prize: Prize) {
+  const completedBountyGroups = new Map<
+    string,
+    { discordRank: DiscordRank; completedBounties: string[] }
+  >()
+  prize.completedBountyIds.forEach((bountyId) => {
+    const { discordRank, bountyPrizes } = bountyPrizeGroups.value.find((group) =>
+      group.bountyPrizes.some((p) => p.id === bountyId),
+    )!
+    let completedBountyGroup = completedBountyGroups.get(discordRank.name)
+    const { name, keys } = bountyPrizes.find((p) => p.id === bountyId)!
+    if (!completedBountyGroup) {
+      completedBountyGroup = {
+        discordRank,
+        completedBounties: [],
+      }
+
+      completedBountyGroups.set(discordRank.name, completedBountyGroup)
+    }
+
+    completedBountyGroup.completedBounties.push(`${name} (${keys} keys)`)
+  })
+
+  console.log(completedBountyGroups)
+  return Array.from(completedBountyGroups.values())
 }
 </script>
 <template>
@@ -57,6 +90,25 @@ function getPlayerName(prize: Prize) {
         <KeyStock />
         <div v-for="prize in prizesWithItems" :key="prize.discordId">
           <h2>Prizes for {{ prize.discordFullName }}</h2>
+          <template v-if="prize.completedBountyGroups.length > 0">
+            <h3>Completed Bounties</h3>
+            <div class="flex gap-8 rounded-md bg-slate-700 px-2 py-1">
+              <div
+                v-for="group in prize.completedBountyGroups"
+                :style="'color:' + getRankColorHex(group.discordRank)"
+              >
+                <div class="font-bold">{{ group.discordRank.name }}</div>
+                <div class="flex flex-col">
+                  <button
+                    v-for="bounty in group.completedBounties"
+                    class="after:content-['✔'] hover:bg-slate-600"
+                  >
+                    {{ bounty }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
           <div class="text-center">
             Keys assigned to {{ prize.discordFullName }}: {{ prize.keys }}
           </div>

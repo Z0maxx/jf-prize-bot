@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { type Player, type Prize, type UniqueItem } from '@jf-prize-bot/schema'
+import { type BountyPrize, type Player, type Prize, type UniqueItem } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 import { computed, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
+import { b } from 'vue-router/dist/index-BQLwgiyK.js'
 
 import { useAppStore } from '@/stores/app.ts'
+import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
 import { useTradeOfferStore } from '@/stores/tradeOffer'
-import { getRanksSpans } from '@/utils'
+import { getRankColorHex } from '@/utils'
 
 import DisplayItem from '@/components/DisplayItem.vue'
+import DropdownSearch from '@/components/DropdownSearch.vue'
 import KeyStock from '@/components/KeyStock.vue'
 import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
@@ -29,11 +32,16 @@ const prizeStore = usePrizeStore()
 const { getPrizeForPlayer, setKeysForPrize, addItemToPrize, removeItemFromPrize } = prizeStore
 const { prizes } = storeToRefs(prizeStore)
 
+const bountyPrizeGroupStore = useBountyPrizeGroupStore()
+const { bountyPrizeGroups } = storeToRefs(bountyPrizeGroupStore)
+
 const tradeOfferStore = useTradeOfferStore()
 const { activeTradeOffers } = storeToRefs(tradeOfferStore)
 
 const keys = ref(0)
 const selectedDiscordId = ref('')
+const selectedPrize = ref<Prize | undefined>()
+const selectedPlayer = ref<Player | undefined>()
 
 const sortedItems = reactive<{ assignedItems: UniqueItem[]; unassignedItems: UniqueItem[] }>({
   assignedItems: [],
@@ -41,6 +49,13 @@ const sortedItems = reactive<{ assignedItems: UniqueItem[]; unassignedItems: Uni
 })
 
 const playersWithTradeUrls = computed(() => players.value.filter((player) => !!player.tradeUrl))
+const selectablePlayers = computed(() =>
+  playersWithTradeUrls.value.reduce(
+    (players, player) => ({ ...players, [player.discordId]: player.discordFullName }),
+    {} as Record<string, string>,
+  ),
+)
+
 const isPageLoading = computed(
   () =>
     !isLoading ||
@@ -53,40 +68,57 @@ const isSaveButtonDisabled = computed(
   () => !hasChanges.value.has(prizeStore.at) || isSaving.value.has(prizeStore.at),
 )
 
-let selectedPrize: Prize | null
-let selectedPlayer: Player | null
+function selectPlayer(discordId: string) {
+  const player = players.value.find((player) => player.discordId === discordId)!
+  selectedDiscordId.value = player.discordId
+}
 
 function tryAddItemToPrize(item: UniqueItem) {
-  if (!selectedPlayer || !selectedPrize) return
+  if (!selectedPlayer.value || !selectedPrize.value) return
 
-  addItemToPrize(selectedPrize, item)
+  addItemToPrize(selectedPrize.value, item)
   sortedItems.assignedItems.splice(0, 0, item)
   const idx = sortedItems.unassignedItems.findIndex((i) => i.assetId === item.assetId)
   sortedItems.unassignedItems.splice(idx, 1)
 }
 
 function tryRemoveItemFromPrize(item: UniqueItem) {
-  if (!selectedPlayer || !selectedPrize || isSaving.value.has(prizeStore.at)) return
+  if (!selectedPlayer.value || !selectedPrize.value || isSaving.value.has(prizeStore.at)) return
 
-  removeItemFromPrize(selectedPrize, item)
+  removeItemFromPrize(selectedPrize.value, item)
   const idx = sortedItems.assignedItems.findIndex((i) => i.assetId === item.assetId)
   sortedItems.assignedItems.splice(idx, 1)
   sortedItems.unassignedItems.splice(0, 0, item)
 }
 
+function getBountyGroup() {
+  if (!selectedPlayer.value) return
+
+  return selectedPlayer.value.discordRanks.map(
+    (rank) => bountyPrizeGroups.value.find((prize) => prize.discordRank.name === rank.name)!,
+  )
+}
+
+function hasCompletedBounty(bounty: BountyPrize) {
+  if (!selectedPrize.value) return false
+
+  return selectedPrize.value.completedBountyIds.includes(bounty.id)
+}
+
 watch(
   [() => inventory.value.items, prizes, activeTradeOffers, selectedDiscordId],
   ([newItems, newPrizes, newActiveTradeOffers, newDiscordId]) => {
-    selectedPlayer = players.value.find((player) => player.discordId === newDiscordId)!
-    if (!selectedPlayer) {
-      selectedPrize = null
+    selectedPlayer.value = players.value.find((player) => player.discordId === newDiscordId)
+    console.log(selectedPlayer)
+    if (!selectedPlayer.value) {
+      selectedPrize.value = undefined
       sortedItems.assignedItems = []
       sortedItems.unassignedItems = []
       return
     }
 
-    selectedPrize = getPrizeForPlayer(selectedPlayer)
-    keys.value = selectedPrize.keys
+    selectedPrize.value = getPrizeForPlayer(selectedPlayer.value)
+    keys.value = selectedPrize.value.keys
     sortedItems.assignedItems = []
     sortedItems.unassignedItems = []
     const itemsInLimboAssetIds = new Set(
@@ -110,11 +142,11 @@ watch(
 )
 
 watch(keys, (newKeys) => {
-  if (!selectedPrize) {
+  if (!selectedPrize.value) {
     return
   }
 
-  if (newKeys.toString() !== '' && newKeys < 0) {
+  if (newKeys.toString() === '' || newKeys < 0) {
     keys.value = 0
   }
 
@@ -122,8 +154,8 @@ watch(keys, (newKeys) => {
     keys.value = parseInt(newKeys.toFixed(0))
   }
 
-  if (selectedPrize.keys !== newKeys) {
-    setKeysForPrize(selectedPrize, newKeys.toString() === '' ? 0 : newKeys)
+  if (selectedPrize.value.keys !== newKeys) {
+    setKeysForPrize(selectedPrize.value, newKeys.toString() === '' ? 0 : newKeys)
   }
 })
 
@@ -141,7 +173,7 @@ onBeforeRouteLeave(() => {
       v-else
       class="sticky top-0 z-50 flex w-full flex-col items-center gap-4 border-b-2 border-blue-500 bg-blue-300 py-4"
     >
-      <div class="flex w-180 gap-4">
+      <div class="w-180">
         <SubmitButton
           @click="prizeStore.saveAsync"
           :disabled="isSaveButtonDisabled"
@@ -150,26 +182,44 @@ onBeforeRouteLeave(() => {
           >Save Prizes</SubmitButton
         >
       </div>
-      <select v-model="selectedDiscordId">
-        <option value="" disabled hidden>Select a Player</option>
-        <option v-for="player in playersWithTradeUrls" :value="player.discordId">
-          {{ player.discordFullName }}
-        </option>
-      </select>
-      <div
-        v-if="selectedPlayer"
-        v-html="getRanksSpans(selectedPlayer)"
-        class="flex items-center gap-4 rounded-md bg-slate-700 px-2 py-1"
-      ></div>
+
+      <DropdownSearch
+        :values="selectablePlayers"
+        :placeholder="'Select a Player'"
+        @selected="selectPlayer"
+        class="w-180"
+      />
     </div>
-    <template v-if="selectedPlayer">
+    <template v-if="selectedPlayer && selectedPrize">
       <h2>Keys</h2>
       <KeyStock />
+      <h3>Completed Bounties</h3>
+      <div class="flex gap-8 rounded-md bg-slate-700 px-2 py-1">
+        <div
+          v-for="group in getBountyGroup()"
+          :style="'color:' + getRankColorHex(group.discordRank)"
+        >
+          <div class="font-bold">{{ group.discordRank.name }}</div>
+          <div class="flex flex-col">
+            <button
+              v-for="bounty in group.bountyPrizes"
+              @click="prizeStore.toggleBountyForPrize(selectedPrize, bounty)"
+              class="after:content-['✔'] hover:bg-slate-600"
+              :class="{
+                'after:opacity-100': hasCompletedBounty(bounty),
+                'after:opacity-0': !hasCompletedBounty(bounty),
+              }"
+            >
+              {{ bounty.name }} ({{ bounty.keys }} keys)
+            </button>
+          </div>
+        </div>
+      </div>
       <div class="mt-2">
         <label for="keys" class="mr-2"
           >Keys assigned to {{ selectedPlayer.discordFullName }}:</label
         >
-        <input v-model="keys" type="number" id="keys" class="w-15" />
+        <input v-model.lazy="keys" type="number" id="keys" class="w-15" />
       </div>
       <template v-if="sortedItems.assignedItems.length > 0">
         <h3>Items assigned to {{ selectedPlayer.discordFullName }}</h3>

@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import LoadingPage from '@/components/LoadingPage.vue';
-import MinusButton from '@/components/MinusButton.vue';
-import PlusButton from '@/components/PlusButton.vue';
-import SubmitButton from '@/components/SubmitButton.vue';
-import { useAppStore } from '@/stores/app';
-import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup';
-import { getRankColorHex } from '@/utils';
-import type { BountyPrize, BountyPrizeGroup } from '@jf-prize-bot/schema';
-import { storeToRefs } from 'pinia';
-import { computed, ref } from 'vue';
-import { onBeforeRouteLeave } from 'vue-router';
+import { storeToRefs } from 'pinia'
+import { computed, ref } from 'vue'
+import { onBeforeRouteLeave } from 'vue-router'
+
+import { useAppStore } from '@/stores/app'
+import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
+import { getRankColorHex } from '@/utils'
+
+import type { BountyPrizeGroup } from '@jf-prize-bot/schema'
+
+import LoadingPage from '@/components/LoadingPage.vue'
+import MinusButton from '@/components/MinusButton.vue'
+import PlusButton from '@/components/PlusButton.vue'
+import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
 const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
@@ -29,7 +32,7 @@ function removeBountyPrize(group: BountyPrizeGroup, idx: number) {
 }
 
 function addBountyPrize(group: BountyPrizeGroup) {
-  group.bountyPrizes.push({ name: '', keys: 1 })
+  group.bountyPrizes.push({ id: crypto.randomUUID(), name: '', keys: 1 })
   hasChanges.value.add(at)
 }
 
@@ -45,22 +48,20 @@ function prizeHasError(group: BountyPrizeGroup, idx: number) {
 
 function trySave() {
   let hasError = false
-  bountyPrizeGroups.value.forEach(group => {
+  bountyPrizeGroups.value.forEach((group) => {
     const prizeErrors: Array<string | undefined> = []
-    group.bountyPrizes.forEach(prize => {
+    group.bountyPrizes.forEach((prize) => {
       if (prize.name.trim() === '') {
         prizeErrors.push('Name is required')
-      }
-      else {
+      } else {
         prizeErrors.push(undefined)
       }
     })
 
-    if (prizeErrors.some(err => !!err)) {
+    if (prizeErrors.some((err) => !!err)) {
       hasError = true
       errors.value.set(group.discordRank.name, prizeErrors)
-    }
-    else {
+    } else {
       errors.value.delete(group.discordRank.name)
     }
   })
@@ -73,14 +74,20 @@ function trySave() {
 onBeforeRouteLeave(() => {
   saveAsync()
 })
-
-
 </script>
 <template>
   <LoadingPage v-if="isPageLoading" :name="at" />
-  <div class="flex items-center flex-col" v-else>
-    <div class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4">
-      <SubmitButton @click="trySave" :disabled="isSaveButtonDisabled" :is-submitting="isSaving.has(at)" class="w-236 button-green">Save {{ at }}</SubmitButton>
+  <div class="flex flex-col items-center" v-else>
+    <div
+      class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
+    >
+      <SubmitButton
+        @click="trySave"
+        :disabled="isSaveButtonDisabled"
+        :is-submitting="isSaving.has(at)"
+        class="w-236 button-green"
+        >Save {{ at }}</SubmitButton
+      >
     </div>
     <h3>{{ at }}</h3>
     <table class="bg-slate-700 text-white">
@@ -92,7 +99,9 @@ onBeforeRouteLeave(() => {
       </thead>
       <tbody class="divide-y-2 divide-gray-400">
         <tr v-for="group in bountyPrizeGroups" :key="group.discordRank.name">
-          <td :style="'color:' + getRankColorHex(group.discordRank)" class="px-2 font-bold">{{ group.discordRank.name }}</td>
+          <td :style="'color:' + getRankColorHex(group.discordRank)" class="px-2 font-bold">
+            {{ group.discordRank.name }}
+          </td>
           <td class="px-1 py-1">
             <div class="flex flex-col gap-1">
               <table v-if="group.bountyPrizes.length > 0">
@@ -107,22 +116,36 @@ onBeforeRouteLeave(() => {
                   <template v-for="idx in group.bountyPrizes.length" :key="idx">
                     <tr class="[&_td]:px-1">
                       <td>
-                        <MinusButton @click="removeBountyPrize(group, idx - 1)" class="pt-0.75"/>
+                        <MinusButton @click="removeBountyPrize(group, idx - 1)" class="pt-0.75" />
                       </td>
                       <td>
-                        <input v-model="group.bountyPrizes[idx - 1]!.name" @input="hasChanges.add(at)" class="max-w-50 custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700">
+                        <input
+                          v-model="group.bountyPrizes[idx - 1]!.name"
+                          @input="hasChanges.add(at)"
+                          class="custom-input w-full max-w-50 rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
+                        />
                       </td>
-                      <td><input type="number" v-model="group.bountyPrizes[idx - 1]!.keys" @input="() => setKeys(group, idx - 1)" class="max-w-15 custom-input w-full rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700" />
+                      <td>
+                        <input
+                          type="number"
+                          v-model="group.bountyPrizes[idx - 1]!.keys"
+                          @focusout="() => setKeys(group, idx - 1)"
+                          class="custom-input w-full max-w-15 rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
+                        />
                       </td>
                     </tr>
                     <tr class="border-b-1 border-gray-500">
                       <td></td>
-                      <td class="text-xs text-fuchsia-400 px-1" colspan="2"><div v-if="prizeHasError(group, idx - 1)" class="mb-1">{{ errors.get(group.discordRank.name)?.at(idx - 1) }}</div></td>
+                      <td class="px-1 text-xs text-fuchsia-400" colspan="2">
+                        <div v-if="prizeHasError(group, idx - 1)" class="mb-1">
+                          {{ errors.get(group.discordRank.name)?.at(idx - 1) }}
+                        </div>
+                      </td>
                     </tr>
                   </template>
                 </tbody>
               </table>
-              <PlusButton @click="addBountyPrize(group)" class="px-1"/>
+              <PlusButton @click="addBountyPrize(group)" class="px-1" />
             </div>
           </td>
         </tr>

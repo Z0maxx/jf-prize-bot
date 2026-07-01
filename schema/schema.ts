@@ -55,8 +55,9 @@ export type PrizeTradeOffer = z.infer<typeof PrizeTradeOfferSchema>
 
 export const PrizeSchema = z.object({
   discordId: PlayerSchema.shape.discordId,
+  assetIds: z.array(z.string()),
+  completedBountyIds: z.array(z.uuidv4()),
   keys: z.number().min(0),
-  assetIds: z.array(z.string())
 })
 
 export type Prize = z.infer<typeof PrizeSchema>
@@ -140,6 +141,7 @@ export type ClearTradeOfferHistoryResult = Result & {
 }
 
 export const BountyPrizeSchema = z.object({
+  id: z.uuidv4(),
   name: z.string().min(1),
   keys: z.number().min(0)
 })
