@@ -1,4 +1,4 @@
-import { DiscordRank, Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
+import { Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 
 import { categoryNames } from './inventory/categoryNames'
 import { descriptionValues } from './inventory/descriptionValues'
@@ -9,8 +9,6 @@ export type DiscordRole = {
   color: number
   name: string
 }
-
-export type DiscordRanks = Map<string, DiscordRank>
 
 export type DiscordMember = {
   user: {

@@ -1,4 +1,9 @@
-import { prizeTradeOfferState, type Player, type PrizeTradeOffer } from '@jf-prize-bot/schema'
+import {
+  prizeTradeOfferState,
+  type DiscordRank,
+  type Player,
+  type PrizeTradeOffer,
+} from '@jf-prize-bot/schema'
 
 export function isActiveTradeOffer(tradeOffer: PrizeTradeOffer) {
   return (
@@ -7,11 +12,14 @@ export function isActiveTradeOffer(tradeOffer: PrizeTradeOffer) {
   )
 }
 
+export function getRankColorHex(rank: DiscordRank) {
+  return '#' + rank.color.toString(16).padStart(6, '0')
+}
+
 export function getRanksSpans(player: Player) {
   return player.discordRanks
     .map((rank) => {
-      const color = '#' + rank.color.toString(16).padStart(6, '0')
-      return `<span style="color: ${color}" class="text-white font-bold">${rank.name}</span>`
+      return `<span style="color: ${getRankColorHex(rank)}" class="text-white font-bold">${rank.name}</span>`
     })
     .join('')
 }

@@ -118,6 +118,10 @@ watch(keys, (newKeys) => {
     keys.value = 0
   }
 
+  if (newKeys.toFixed(0) !== newKeys.toString()) {
+    keys.value = parseInt(newKeys.toFixed(0))
+  }
+
   if (selectedPrize.keys !== newKeys) {
     setKeysForPrize(selectedPrize, newKeys.toString() === '' ? 0 : newKeys)
   }

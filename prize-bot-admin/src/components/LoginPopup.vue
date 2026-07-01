@@ -170,7 +170,11 @@ watch(isLoginPopupOpened, (opened) => {
         </template>
         <div class="text-sm text-red-500">{{ steamGuardCodeError }}</div>
         <div class="text-red-500">{{ error }}</div>
-        <SubmitButton @click="submit" :is-submitting="isSubmitting" :disabled="isSubmitting" class="button-green"
+        <SubmitButton
+          @click="submit"
+          :is-submitting="isSubmitting"
+          :disabled="isSubmitting"
+          class="button-green"
           >Submit</SubmitButton
         >
       </div>

@@ -109,3 +109,7 @@ input:not(.custom-input),
 select:not(.custom-select) {
   @apply rounded-md border-2 border-sky-500 bg-sky-200 px-1 py-0.5 focus:outline-sky-700;
 }
+
+th {
+  @apply text-left px-2 py-1
+}

@@ -3889,7 +3889,7 @@ export const testData = {
     },
     {
       assetId: '16152176942',
-      nameParts: [['Professional Killstreak'], ['Your Eternal Reward']],
+      nameParts: [['Professional Killstreak'], ['Your Eternal Prize']],
       iconUrl:
         'https://community.fastly.steamstatic.com/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUwIFWAnsuTR8ms3xDOCIN-wBid0wq8INjWQ9lwMoNbq3aTQzcQfGU6EOCaI_rQm_UHFlupY6A4Hvoe1XfAnx9NyR6XUuLuY',
     },
@@ -4416,7 +4416,7 @@ export const testData = {
     },
     {
       assetId: '16825242243',
-      nameParts: [['Killstreak'], ['Your Eternal Reward']],
+      nameParts: [['Killstreak'], ['Your Eternal Prize']],
       iconUrl:
         'https://community.fastly.steamstatic.com/economy/image/fWFc82js0fmoRAP-qOIPu5THSWqfSmTELLqcUywGkijVjZULUrsm1j-9xgEIUwIFWAnsuTR8ms3xDOCIN-wBid0wq8INjWQ9lwMoNbq3aTQzcQfGU6EOCaI_rQm_UHFlupY6A4Hvoe1XfAnx9NyR6XUuLuY',
     },
