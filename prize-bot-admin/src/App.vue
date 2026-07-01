@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
 
 import { useAppStore } from './stores/app.ts'
-import { useBountyPrizeGroupStore } from './stores/bountyPrizeGroup.ts'
+import { useBountyGroupStore } from './stores/bountyGroup.ts'
 import { useInventoryStore } from './stores/inventory.ts'
 import { usePlayerStore } from './stores/player.ts'
 import { usePrizeStore } from './stores/prize.ts'
@@ -21,7 +21,7 @@ const playerStore = usePlayerStore()
 const prizeStore = usePrizeStore()
 const inventoryStore = useInventoryStore()
 const tradeOfferStore = useTradeOfferStore()
-const bountyPrizeGroupStore = useBountyPrizeGroupStore()
+const bountyGroupStore = useBountyGroupStore()
 
 const unsavedChangesAt = computed(() => {
   return 'Unsaved changes in data for ' + Array.from(hasChanges.value.values()).join(', ')
@@ -32,7 +32,7 @@ onMounted(async () => {
   playerStore.loadAsync()
   prizeStore.loadAsync()
   tradeOfferStore.loadAsync()
-  bountyPrizeGroupStore.loadAsync()
+  bountyGroupStore.loadAsync()
   appStore.setIsLoggedInAsync()
 })
 
@@ -49,8 +49,8 @@ window.addEventListener('beforeunload', (e) => {
       <NavbarButton to="/">Home</NavbarButton>
       <NavbarButton to="/players" :saving-at="playerStore.at">Players</NavbarButton>
       <NavbarButton to="/prizes" :saving-at="prizeStore.at">Prizes</NavbarButton>
-      <NavbarButton to="/bounty-prize-groups" :saving-at="bountyPrizeGroupStore.at"
-        >Bounty Prize Groups</NavbarButton
+      <NavbarButton to="/bounty-groups" :saving-at="bountyGroupStore.at"
+        >Bounty Groups</NavbarButton
       >
       <NavbarButton to="/trade-offers">Trade Offers</NavbarButton>
     </nav>

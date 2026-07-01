@@ -140,17 +140,17 @@ export type ClearTradeOfferHistoryResult = Result & {
   activeTradeOffers?: PrizeTradeOffer[] | undefined
 }
 
-export const BountyPrizeSchema = z.object({
+export const BountySchema = z.object({
   id: z.uuidv4(),
   name: z.string().min(1),
   keys: z.number().min(0)
 })
 
-export type BountyPrize = z.infer<typeof BountyPrizeSchema>
+export type Bounty = z.infer<typeof BountySchema>
 
-export const BountyPrizeGroupSchema = z.object({
+export const BountyGroupSchema = z.object({
   discordRank: DiscordRankSchema,
-  bountyPrizes: z.array(BountyPrizeSchema)
+  bounties: z.array(BountySchema)
 })
 
-export type BountyPrizeGroup = z.infer<typeof BountyPrizeGroupSchema>
+export type BountyGroup = z.infer<typeof BountyGroupSchema>

@@ -3,13 +3,13 @@ import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 
 import { useAppStore } from '@/stores/app'
-import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
+import { useBountyGroupStore } from '@/stores/bountyGroup'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
 import { getRankColorHex } from '@/utils'
 
-import type { BountyPrizeGroup, DiscordRank, Player, Prize } from '@jf-prize-bot/schema'
+import type { BountyGroup, DiscordRank, Player, Prize } from '@jf-prize-bot/schema'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
@@ -27,8 +27,8 @@ const { players } = storeToRefs(playerStore)
 const prizeStore = usePrizeStore()
 const { prizes } = storeToRefs(prizeStore)
 
-const bountyPrizeGroupStore = useBountyPrizeGroupStore()
-const { bountyPrizeGroups } = storeToRefs(bountyPrizeGroupStore)
+const bountyGroupStore = useBountyGroupStore()
+const { bountyGroups } = storeToRefs(bountyGroupStore)
 
 const isPageLoading = computed(
   () => !isLoading || isLoading.value.has(prizeStore.at) || isLoading.value.has(playerStore.at),
@@ -59,11 +59,11 @@ function getCompletedBountyGroups(prize: Prize) {
     { discordRank: DiscordRank; completedBounties: string[] }
   >()
   prize.completedBountyIds.forEach((bountyId) => {
-    const { discordRank, bountyPrizes } = bountyPrizeGroups.value.find((group) =>
-      group.bountyPrizes.some((p) => p.id === bountyId),
+    const { discordRank, bounties } = bountyGroups.value.find((group) =>
+      group.bounties.some((p) => p.id === bountyId),
     )!
     let completedBountyGroup = completedBountyGroups.get(discordRank.name)
-    const { name, keys } = bountyPrizes.find((p) => p.id === bountyId)!
+    const { name, keys } = bounties.find((p) => p.id === bountyId)!
     if (!completedBountyGroup) {
       completedBountyGroup = {
         discordRank,

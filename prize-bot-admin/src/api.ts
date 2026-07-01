@@ -1,6 +1,6 @@
 import type {
-  BountyPrize,
-  BountyPrizeGroup,
+  Bounty,
+  BountyGroup,
   CancelAllTradeOffersResult,
   CancelTradeOfferResult,
   ClearTradeOfferHistoryResult,
@@ -72,8 +72,8 @@ export const api = {
     return get<PrizeTradeOffer[]>('/trade-offers')
   },
 
-  getBountyPrizeGroups() {
-    return get<BountyPrizeGroup[]>('/bounty-prize-groups')
+  getBountyGroups() {
+    return get<BountyGroup[]>('/bounty-groups')
   },
 
   savePlayers(players: Player[]) {
@@ -84,8 +84,8 @@ export const api = {
     return post('/prizes', prizes)
   },
 
-  saveBountyPrizeGroups(bountyPrizeGroups: BountyPrizeGroup[]) {
-    return post('/bounty-prize-groups', bountyPrizeGroups)
+  saveBountyGroups(bountyGroups: BountyGroup[]) {
+    return post('/bounty-groups', bountyGroups)
   },
 
   login(credentails: SteamCredentials) {

@@ -1,5 +1,5 @@
 import {
-  BountyPrizeGroupSchema,
+  BountyGroupSchema,
   PlayerSchema,
   PrizeSchema,
   sendPrizesKnownError,
@@ -12,6 +12,7 @@ import express from 'express'
 import 'dotenv/config'
 import { z } from 'zod'
 
+import { getBountyGroupsAsync, saveBountyGroupsAsync } from './bounties'
 import { getInventoryAsync, reloadInventoryAsync } from './inventory/inventory'
 import { getPlayersAsync, savePlayersAsync } from './players'
 import { getPrizesAsync, savePrizesAsync } from './prizes'
@@ -26,11 +27,10 @@ import {
   updatePrizeTradeOfferStatesAsync,
 } from './steamActions'
 import { getTradeOffersAsync, saveTradeOffersAsync } from './tradeOffers'
-import { getBountyPrizeGroupsAsync, saveBountyPrizeGroupsAsync } from './bountyPrizes'
 
 const PrizesSchema = z.array(PrizeSchema)
 const PlayersSchema = z.array(PlayerSchema)
-const BountyPrizeGroupsSchema = z.array(BountyPrizeGroupSchema)
+const BountyGroupsSchema = z.array(BountyGroupSchema)
 
 const app = express()
 app.use(express.json({ limit: '1000mb' }))
@@ -86,8 +86,8 @@ app.get('/trade-offers', async (_, res) => {
   res.status(200).send(await getTradeOffersAsync())
 })
 
-app.get('/bounty-prize-groups', async (_, res) => {
-  res.status(200).send(await getBountyPrizeGroupsAsync())
+app.get('/bounty-groups', async (_, res) => {
+  res.status(200).send(await getBountyGroupsAsync())
 })
 
 app.get('/is-logged-in', async (_, res) => {
@@ -114,10 +114,10 @@ app.post('/prizes', async (req, res) => {
   }
 })
 
-app.post('/bounty-prize-groups', async (req, res) => {
-  const parsed = BountyPrizeGroupsSchema.safeParse(req.body)
+app.post('/bounty-groups', async (req, res) => {
+  const parsed = BountyGroupsSchema.safeParse(req.body)
   if (parsed.success) {
-    await saveBountyPrizeGroupsAsync(parsed.data)
+    await saveBountyGroupsAsync(parsed.data)
     res.status(201).send()
   } else {
     res.status(400).send(parsed.error)

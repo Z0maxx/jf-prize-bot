@@ -6,7 +6,7 @@ import { api } from '@/api'
 import { useAppStore } from './app'
 import { useInventoryStore } from './inventory'
 
-import type { BountyPrize, Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
+import type { Bounty, Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
 
 export const usePrizeStore = defineStore('prizeStore', () => {
   const prizes = ref<Prize[]>([])
@@ -63,21 +63,39 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     }
   }
 
-  function toggleBountyForPrize(prize: Prize, bounty: BountyPrize) {
-    console.log(prize)
+  function toggleBountyForPrize(prize: Prize, bounty: Bounty) {
     const idx = prize.completedBountyIds.indexOf(bounty.id)
     if (idx > -1) {
       prize.completedBountyIds.splice(idx, 1)
       const keys = prize.keys - bounty.keys
       prize.keys = keys < 0 ? 0 : keys
-      const { addHasChanges } = useAppStore()
-      addHasChanges(at)
     } else {
       prize.completedBountyIds.push(bounty.id)
       prize.keys += bounty.keys
       const { addHasChanges } = useAppStore()
       addHasChanges(at)
     }
+  }
+
+  async function removeAllBountiesFromPrizesAsync() {
+    const { addHasChanges } = useAppStore()
+    prizes.value.forEach((prize) => {
+      if (prize.completedBountyIds.length > 0) {
+        addHasChanges(at)
+        prize.completedBountyIds = []
+      }
+    })
+  }
+
+  async function removeBountyFromPrizes(bounty: Bounty) {
+    const { addHasChanges } = useAppStore()
+    prizes.value.forEach((prize) => {
+      const idx = prize.completedBountyIds.indexOf(bounty.id)
+      if (idx > -1) {
+        prize.completedBountyIds.splice(idx, 1)
+        addHasChanges(at)
+      }
+    })
   }
 
   async function loadAsync() {
@@ -115,6 +133,8 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     removeItemFromPrize,
     removePrizeForPlayer,
     toggleBountyForPrize,
+    removeBountyFromPrizes,
+    removeAllBountiesFromPrizesAsync,
     loadAsync,
     saveAsync,
   }

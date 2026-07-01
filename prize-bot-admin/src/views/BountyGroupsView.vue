@@ -4,10 +4,11 @@ import { computed, ref } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 
 import { useAppStore } from '@/stores/app'
-import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
+import { useBountyGroupStore } from '@/stores/bountyGroup'
+import { usePrizeStore } from '@/stores/prize'
 import { getRankColorHex } from '@/utils'
 
-import type { BountyPrizeGroup } from '@jf-prize-bot/schema'
+import type { BountyGroup } from '@jf-prize-bot/schema'
 
 import LoadingPage from '@/components/LoadingPage.vue'
 import MinusButton from '@/components/MinusButton.vue'
@@ -17,40 +18,47 @@ import SubmitButton from '@/components/SubmitButton.vue'
 const appStore = useAppStore()
 const { hasChanges, isSaving, isLoading } = storeToRefs(appStore)
 
-const bountyPrizeGroupStore = useBountyPrizeGroupStore()
-const { at, saveAsync } = bountyPrizeGroupStore
-const { bountyPrizeGroups } = storeToRefs(bountyPrizeGroupStore)
+const prizeStore = usePrizeStore()
+
+const bountyGroupStore = useBountyGroupStore()
+const { at } = bountyGroupStore
+const { bountyGroups, isDeletingBounties } = storeToRefs(bountyGroupStore)
 
 const errors = ref(new Map<string, Array<string | undefined>>())
 
 const isPageLoading = computed(() => !isLoading || isLoading.value.has(at))
 const isSaveButtonDisabled = computed(() => !hasChanges.value.has(at) || isSaving.value.has(at))
+const isDeleteButtonDisabled = computed(
+  () =>
+    bountyGroups.value.every((group) => group.bounties.length === 0) || isDeletingBounties.value,
+)
 
-function removeBountyPrize(group: BountyPrizeGroup, idx: number) {
-  group.bountyPrizes.splice(idx, 1)
+function removeBounty(group: BountyGroup, idx: number) {
+  prizeStore.removeBountyFromPrizes(group.bounties[idx]!)
+  group.bounties.splice(idx, 1)
   hasChanges.value.add(at)
 }
 
-function addBountyPrize(group: BountyPrizeGroup) {
-  group.bountyPrizes.push({ id: crypto.randomUUID(), name: '', keys: 1 })
+function addBounty(group: BountyGroup) {
+  group.bounties.push({ id: crypto.randomUUID(), name: '', keys: 1 })
   hasChanges.value.add(at)
 }
 
-function setKeys(group: BountyPrizeGroup, idx: number) {
+function setKeys(group: BountyGroup, idx: number) {
   hasChanges.value.add(at)
-  const keys = group.bountyPrizes[idx]!.keys
-  group.bountyPrizes[idx]!.keys = Number.isNaN(keys) || keys < 1 ? 1 : keys
+  const keys = group.bounties[idx]!.keys
+  group.bounties[idx]!.keys = Number.isNaN(keys) || keys < 1 ? 1 : keys
 }
 
-function prizeHasError(group: BountyPrizeGroup, idx: number) {
+function prizeHasError(group: BountyGroup, idx: number) {
   return errors.value.get(group.discordRank.name)?.at(idx) !== undefined
 }
 
 function trySave() {
   let hasError = false
-  bountyPrizeGroups.value.forEach((group) => {
+  bountyGroups.value.forEach((group) => {
     const prizeErrors: Array<string | undefined> = []
-    group.bountyPrizes.forEach((prize) => {
+    group.bounties.forEach((prize) => {
       if (prize.name.trim() === '') {
         prizeErrors.push('Name is required')
       } else {
@@ -66,13 +74,31 @@ function trySave() {
     }
   })
 
-  if (!hasError) {
-    saveAsync()
+  if (hasError) {
+    return
+  }
+
+  if (hasChanges.value.has(prizeStore.at)) {
+    prizeStore.saveAsync()
+  }
+
+  bountyGroupStore.saveAsync()
+}
+
+function tryDelete() {
+  if (confirm(`Are you sure you want to delete all Bounties?`)) {
+    bountyGroupStore.deleteBountiesAsync()
+    prizeStore.removeAllBountiesFromPrizesAsync()
   }
 }
 
 onBeforeRouteLeave(() => {
-  saveAsync()
+  trySave()
+  if (errors.value.size > 0) {
+    return false
+  }
+
+  return true
 })
 </script>
 <template>
@@ -81,30 +107,39 @@ onBeforeRouteLeave(() => {
     <div
       class="sticky top-0 z-50 flex w-full flex-col items-center border-b-2 border-blue-500 bg-blue-300 py-4"
     >
-      <SubmitButton
-        @click="trySave"
-        :disabled="isSaveButtonDisabled"
-        :is-submitting="isSaving.has(at)"
-        class="w-236 button-green"
-        >Save {{ at }}</SubmitButton
-      >
+      <div class="flex w-180 gap-4">
+        <SubmitButton
+          @click="trySave"
+          :disabled="isSaveButtonDisabled"
+          :is-submitting="isSaving.has(at)"
+          class="w-full button-green"
+          >Save {{ at }}</SubmitButton
+        >
+        <SubmitButton
+          @click="tryDelete"
+          :disabled="isDeleteButtonDisabled"
+          :is-submitting="isDeletingBounties"
+          class="w-full button-rose"
+          >Delete Bounties</SubmitButton
+        >
+      </div>
     </div>
     <h3>{{ at }}</h3>
     <table class="bg-slate-700 text-white">
       <thead>
         <tr>
           <th>Rank</th>
-          <th>Bounty Prizes</th>
+          <th>Bounties</th>
         </tr>
       </thead>
       <tbody class="divide-y-2 divide-gray-400">
-        <tr v-for="group in bountyPrizeGroups" :key="group.discordRank.name">
+        <tr v-for="group in bountyGroups" :key="group.discordRank.name">
           <td :style="'color:' + getRankColorHex(group.discordRank)" class="px-2 font-bold">
             {{ group.discordRank.name }}
           </td>
           <td class="px-1 py-1">
             <div class="flex flex-col gap-1">
-              <table v-if="group.bountyPrizes.length > 0">
+              <table v-if="group.bounties.length > 0">
                 <thead>
                   <tr>
                     <th></th>
@@ -113,14 +148,14 @@ onBeforeRouteLeave(() => {
                   </tr>
                 </thead>
                 <tbody>
-                  <template v-for="idx in group.bountyPrizes.length" :key="idx">
+                  <template v-for="idx in group.bounties.length" :key="idx">
                     <tr class="[&_td]:px-1">
                       <td>
-                        <MinusButton @click="removeBountyPrize(group, idx - 1)" class="pt-0.75" />
+                        <MinusButton @click="removeBounty(group, idx - 1)" class="pt-0.75" />
                       </td>
                       <td>
                         <input
-                          v-model="group.bountyPrizes[idx - 1]!.name"
+                          v-model="group.bounties[idx - 1]!.name"
                           @input="hasChanges.add(at)"
                           class="custom-input w-full max-w-50 rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
                         />
@@ -128,7 +163,7 @@ onBeforeRouteLeave(() => {
                       <td>
                         <input
                           type="number"
-                          v-model="group.bountyPrizes[idx - 1]!.keys"
+                          v-model="group.bounties[idx - 1]!.keys"
                           @focusout="() => setKeys(group, idx - 1)"
                           class="custom-input w-full max-w-15 rounded-md border-2 border-sky-800 bg-sky-950 px-1 py-0.5 focus:outline-sky-700"
                         />
@@ -145,7 +180,7 @@ onBeforeRouteLeave(() => {
                   </template>
                 </tbody>
               </table>
-              <PlusButton @click="addBountyPrize(group)" class="px-1" />
+              <PlusButton @click="addBounty(group)" class="px-1" />
             </div>
           </td>
         </tr>

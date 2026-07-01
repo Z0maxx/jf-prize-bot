@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { type BountyPrize, type Player, type Prize, type UniqueItem } from '@jf-prize-bot/schema'
+import { type Bounty, type Player, type Prize, type UniqueItem } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
 import { computed, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
 import { b } from 'vue-router/dist/index-BQLwgiyK.js'
 
 import { useAppStore } from '@/stores/app.ts'
-import { useBountyPrizeGroupStore } from '@/stores/bountyPrizeGroup'
+import { useBountyGroupStore } from '@/stores/bountyGroup'
 import { useInventoryStore } from '@/stores/inventory'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
@@ -32,8 +32,8 @@ const prizeStore = usePrizeStore()
 const { getPrizeForPlayer, setKeysForPrize, addItemToPrize, removeItemFromPrize } = prizeStore
 const { prizes } = storeToRefs(prizeStore)
 
-const bountyPrizeGroupStore = useBountyPrizeGroupStore()
-const { bountyPrizeGroups } = storeToRefs(bountyPrizeGroupStore)
+const bountyGroupStore = useBountyGroupStore()
+const { bountyGroups } = storeToRefs(bountyGroupStore)
 
 const tradeOfferStore = useTradeOfferStore()
 const { activeTradeOffers } = storeToRefs(tradeOfferStore)
@@ -95,11 +95,11 @@ function getBountyGroup() {
   if (!selectedPlayer.value) return
 
   return selectedPlayer.value.discordRanks.map(
-    (rank) => bountyPrizeGroups.value.find((prize) => prize.discordRank.name === rank.name)!,
+    (rank) => bountyGroups.value.find((prize) => prize.discordRank.name === rank.name)!,
   )
 }
 
-function hasCompletedBounty(bounty: BountyPrize) {
+function hasCompletedBounty(bounty: Bounty) {
   if (!selectedPrize.value) return false
 
   return selectedPrize.value.completedBountyIds.includes(bounty.id)
@@ -202,7 +202,7 @@ onBeforeRouteLeave(() => {
           <div class="font-bold">{{ group.discordRank.name }}</div>
           <div class="flex flex-col">
             <button
-              v-for="bounty in group.bountyPrizes"
+              v-for="bounty in group.bounties"
               @click="prizeStore.toggleBountyForPrize(selectedPrize, bounty)"
               class="after:content-['✔'] hover:bg-slate-600"
               :class="{

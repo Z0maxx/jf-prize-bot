@@ -61,7 +61,7 @@ async function save() {
       .forEach((player) => prizeStore.removePrizeForPlayer(player))
 
     if (hasChanges.value.has(prizeStore.at)) {
-      await prizeStore.saveAsync()
+      prizeStore.saveAsync()
     }
 
     setOriginalTradeUrls()
