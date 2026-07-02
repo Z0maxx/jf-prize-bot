@@ -20,6 +20,8 @@ import type {
 
 export const keyClassId = process.env.USE_SCRAP_AS_KEY ? '2675' : '101785959'
 const botUserId = process.env.BOT_USER_ID
+// scrap, rec, ref, key
+const removedItemClassIds = ['2675', '2674', '5564', '101785959']
 
 export async function getInventoryAsResultAsync(): Promise<DataResult<Inventory>> {
   try {
@@ -51,7 +53,10 @@ export async function reloadInventoryAsync(): Promise<Inventory> {
 async function getUniqueItemsAsync(items: Item[]) {
   const filteredItems = items.filter(
     (item) =>
-      item.tradable && item.classId !== keyClassId && !item.commodity && !isNormalWeapon(item),
+      item.tradable &&
+      !removedItemClassIds.includes(item.classId) &&
+      !item.commodity &&
+      !isNormalWeapon(item),
   )
 
   const effects = await getSchemaAsync('effects')
