@@ -1,11 +1,13 @@
-import { UniqueItem } from '@jf-prize-bot/schema'
+import { DataResult, UniqueItem } from '@jf-prize-bot/schema'
 
 import { getListFromSheetAsync, saveListToSheetAsync } from '../sheets'
+import { getDataResult, getErrorResult } from '../utils'
 import { categoryNames } from './categoryNames'
 import { descriptionValues } from './descriptionValues'
 import { grades } from './grades'
-import { tagNames } from './tagNames'
 import 'dotenv/config'
+import { tagNames } from './tagNames'
+
 import type {
   CategoryName,
   DescriptionValue,
@@ -19,6 +21,14 @@ import type {
 export const keyClassId = process.env.USE_SCRAP_AS_KEY ? '2675' : '101785959'
 const botUserId = process.env.BOT_USER_ID
 
+export async function getInventoryAsResultAsync(): Promise<DataResult<Inventory>> {
+  try {
+    return getDataResult(await getInventoryAsync())
+  } catch (err) {
+    return getErrorResult(err)
+  }
+}
+
 export async function getInventoryAsync(): Promise<Inventory> {
   return {
     items: await getListFromSheetAsync<UniqueItem>('Inventory', 'A'),
@@ -30,8 +40,8 @@ export async function reloadInventoryAsync(): Promise<Inventory> {
   const items = await getItemsAsync()
   const keys = items.filter((item) => item.classId === keyClassId).length
   const uniqueItems = await getUniqueItemsAsync(items)
-  await saveListToSheetAsync('Inventory', 'A', uniqueItems)
-  await saveListToSheetAsync('Inventory', 'B', [{ keys }])
+  await saveListToSheetAsync('Inventory', uniqueItems, 'A')
+  await saveListToSheetAsync('Inventory', [{ keys }], 'B')
   return {
     items: uniqueItems,
     keys,

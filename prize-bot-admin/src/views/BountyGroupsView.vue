@@ -55,6 +55,8 @@ function prizeHasError(group: BountyGroup, idx: number) {
 }
 
 function trySave() {
+  if (!hasChanges.value.has(at)) return
+
   let hasError = false
   bountyGroups.value.forEach((group) => {
     const prizeErrors: Array<string | undefined> = []
@@ -74,9 +76,7 @@ function trySave() {
     }
   })
 
-  if (hasError) {
-    return
-  }
+  if (hasError) return
 
   if (hasChanges.value.has(prizeStore.at)) {
     prizeStore.saveAsync()

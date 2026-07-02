@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { api } from '@/api'
 
 import { useAppStore } from './app'
+import { load, save } from './helpers'
 import { useInventoryStore } from './inventory'
 
 import type { Bounty, Player, Prize, UniqueItem } from '@jf-prize-bot/schema'
@@ -77,7 +78,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     }
   }
 
-  async function removeAllBountiesFromPrizesAsync() {
+  function removeAllBountiesFromPrizesAsync() {
     const { addHasChanges } = useAppStore()
     prizes.value.forEach((prize) => {
       if (prize.completedBountyIds.length > 0) {
@@ -87,7 +88,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     })
   }
 
-  async function removeBountyFromPrizes(bounty: Bounty) {
+  function removeBountyFromPrizes(bounty: Bounty) {
     const { addHasChanges } = useAppStore()
     prizes.value.forEach((prize) => {
       const idx = prize.completedBountyIds.indexOf(bounty.id)
@@ -98,29 +99,24 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     })
   }
 
-  async function loadAsync() {
-    const { addIsLoading, removeIsLoading } = useAppStore()
-    addIsLoading(at)
-    prizes.value = await api.getPrizes()
-    removeIsLoading(at)
+  function loadAsync() {
+    return load(at, prizes, api.getPrizes)
   }
 
-  async function saveAsync() {
-    const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
-    addIsSaving(at)
-    const { inventory } = useInventoryStore()
-    const assetIds = inventory.items.map((item) => item.assetId)
-    prizes.value.forEach((prize) => {
-      prize.assetIds = prize.assetIds.filter((assetId) => assetIds.includes(assetId))
+  function saveAsync() {
+    return save(at, () => {
+      const { inventory } = useInventoryStore()
+      const assetIds = inventory.items.map((item) => item.assetId)
+      prizes.value.forEach((prize) => {
+        prize.assetIds = prize.assetIds.filter((assetId) => assetIds.includes(assetId))
+      })
+
+      const filteredPrizes = prizes.value.filter(
+        (prize) => prize.keys > 0 || prize.assetIds.length > 0,
+      )
+
+      return api.savePrizes(filteredPrizes)
     })
-
-    const filteredPrizes = prizes.value.filter(
-      (prize) => prize.keys > 0 || prize.assetIds.length > 0,
-    )
-
-    await api.savePrizes(filteredPrizes)
-    removeHasChanges(at)
-    removeIsSaving(at)
   }
 
   return {

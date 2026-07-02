@@ -20,7 +20,7 @@ import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
-const { hasChanges, isLoading, isSaving, isReloading } = storeToRefs(appStore)
+const { hasChanges, isLoading, isSaving, isReloading, isSendingPrizes } = storeToRefs(appStore)
 
 const inventoryStore = useInventoryStore()
 const { inventory } = storeToRefs(inventoryStore)
@@ -65,7 +65,7 @@ const isPageLoading = computed(
 )
 
 const isSaveButtonDisabled = computed(
-  () => !hasChanges.value.has(prizeStore.at) || isSaving.value.has(prizeStore.at),
+  () => !hasChanges.value.has(prizeStore.at) || isSaving.value.has(prizeStore.at) || isSendingPrizes.value,
 )
 
 function selectPlayer(discordId: string) {
@@ -109,7 +109,6 @@ watch(
   [() => inventory.value.items, prizes, activeTradeOffers, selectedDiscordId],
   ([newItems, newPrizes, newActiveTradeOffers, newDiscordId]) => {
     selectedPlayer.value = players.value.find((player) => player.discordId === newDiscordId)
-    console.log(selectedPlayer)
     if (!selectedPlayer.value) {
       selectedPrize.value = undefined
       sortedItems.assignedItems = []

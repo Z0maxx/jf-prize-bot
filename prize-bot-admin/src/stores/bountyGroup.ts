@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { api } from '@/api'
 
 import { useAppStore } from './app'
+import { load, save } from './helpers'
 
 import type { BountyGroup } from '@jf-prize-bot/schema'
 
@@ -12,19 +13,12 @@ export const useBountyGroupStore = defineStore('bountyGroupStore', () => {
   const bountyGroups = ref<BountyGroup[]>([])
   const isDeletingBounties = ref(false)
 
-  async function loadAsync() {
-    const { addIsLoading, removeIsLoading } = useAppStore()
-    addIsLoading(at)
-    bountyGroups.value = await api.getBountyGroups()
-    removeIsLoading(at)
+  function loadAsync() {
+    return load(at, bountyGroups, api.getBountyGroups)
   }
 
-  async function saveAsync() {
-    const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
-    addIsSaving(at)
-    await api.saveBountyGroups(bountyGroups.value)
-    removeHasChanges(at)
-    removeIsSaving(at)
+  function saveAsync() {
+    return save(at, () => api.saveBountyGroups(bountyGroups.value))
   }
 
   async function deleteBountiesAsync() {
@@ -34,9 +28,12 @@ export const useBountyGroupStore = defineStore('bountyGroupStore', () => {
       group.bounties = []
     })
 
-    await api.saveBountyGroups(bountyGroups.value)
+    const result = await api.saveBountyGroups(bountyGroups.value)
+    if (result.success) {
+      removeHasChanges(at)
+    }
+
     isDeletingBounties.value = false
-    removeHasChanges(at)
   }
 
   return {

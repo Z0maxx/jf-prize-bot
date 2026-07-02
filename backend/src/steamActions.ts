@@ -20,6 +20,7 @@ import SteamCommunity from 'steamcommunity'
 import CEconItem from 'steamcommunity/classes/CEconItem'
 
 import { keyClassId } from './inventory/inventory'
+import { getErrorResult } from './utils'
 
 const client = new SteamUser()
 const community = new SteamCommunity()
@@ -257,7 +258,7 @@ export async function sendPrizesAsync(
       tradeOffers,
     }
   } catch (err: any) {
-    return getFailedErrorResult(err)
+    return getErrorResult(err)
   }
 }
 
@@ -280,7 +281,7 @@ export async function cancelPrizeTradeOfferAsync(
       state: prizeTradeOfferState.unknown,
     }
   } catch (err) {
-    return getFailedErrorResult(err)
+    return getErrorResult(err)
   }
 }
 
@@ -299,7 +300,7 @@ export async function cancelAllPrizeTradeOffersAsync(
       cancelTradeOfferResults: await Promise.all(offerPromises),
     }
   } catch (err) {
-    return getFailedErrorResult(err)
+    return getErrorResult(err)
   }
 }
 
@@ -322,7 +323,7 @@ export async function updatePrizeTradeOfferStatesAsync(
       success: true,
     }
   } catch (err) {
-    return getFailedErrorResult(err)
+    return getErrorResult(err)
   }
 }
 
@@ -338,7 +339,7 @@ export async function clearTradeOfferHistoryAsync(
       ),
     }
   } catch (err) {
-    return getFailedErrorResult(err)
+    return getErrorResult(err)
   }
 }
 
@@ -431,11 +432,4 @@ function cancelTradeOfferAsync(offer: TradeOffer): Promise<CancelTradeOfferResul
       })
     })
   })
-}
-
-function getFailedErrorResult(error: unknown) {
-  return {
-    success: false,
-    error: typeof error === 'string' ? error : (error as Error).message,
-  }
 }

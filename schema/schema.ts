@@ -123,10 +123,6 @@ export const TradeOfferIdSchema = z.object({
 
 export type TradeOfferId = z.infer<typeof TradeOfferIdSchema>
 
-export const TradeOfferIdsSchema = z.object({
-  tradeOfferIds: z.array(TradeOfferIdSchema.shape.tradeOfferId)
-})
-
 export type CancelTradeOfferResult = Result & {
   tradeOfferId?: string
   state?: PrizeTradeOfferState
@@ -154,3 +150,7 @@ export const BountyGroupSchema = z.object({
 })
 
 export type BountyGroup = z.infer<typeof BountyGroupSchema>
+
+export type DataResult<T> = Result & {
+  data?: T | undefined
+}

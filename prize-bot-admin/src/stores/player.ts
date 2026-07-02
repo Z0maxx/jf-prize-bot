@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { api } from '@/api'
 
 import { useAppStore } from './app'
+import { load, save } from './helpers'
 
 import type { Player } from '@jf-prize-bot/schema'
 
@@ -26,19 +27,12 @@ export const usePlayerStore = defineStore('playerStore', () => {
     }
   }
 
-  async function loadAsync() {
-    const { addIsLoading, removeIsLoading } = useAppStore()
-    addIsLoading(at)
-    players.value = await api.getPlayers()
-    removeIsLoading(at)
+  function loadAsync() {
+    return load(at, players, api.getPlayers)
   }
 
-  async function saveAsync() {
-    const { addIsSaving, removeIsSaving, removeHasChanges } = useAppStore()
-    addIsSaving(at)
-    await api.savePlayers(players.value.filter((player) => !!player.tradeUrl))
-    removeHasChanges(at)
-    removeIsSaving(at)
+  function saveAsync() {
+    return save(at, () => api.savePlayers(players.value.filter((player) => !!player.tradeUrl)))
   }
 
   return {

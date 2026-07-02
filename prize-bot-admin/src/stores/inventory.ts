@@ -1,23 +1,24 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 
 import { api } from '@/api'
+
+import { load } from './helpers'
 
 import type { Inventory } from '@jf-prize-bot/schema'
 
 export const useInventoryStore = defineStore('inventoryStore', () => {
-  const inventory = reactive<Inventory>({
+  const inventory = ref<Inventory>({
     keys: 0,
     items: [],
   })
 
   function setInventory(newInventory: Inventory) {
-    inventory.items = newInventory.items
-    inventory.keys = newInventory.keys
+    inventory.value = newInventory
   }
 
-  async function loadAsync() {
-    setInventory(await api.getInventory())
+  function loadAsync() {
+    return load('Inventory', inventory, api.getInventory)
   }
 
   return {

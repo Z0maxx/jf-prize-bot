@@ -4,14 +4,14 @@ import { DiscordMember, DiscordRole } from './types'
 
 const botToken = process.env.DISCORD_BOT_TOKEN
 const apiUrl = `https://discord.com/api/v9/guilds/${process.env.DISCORD_GUILD_ID}/`
-/*let ranksCache: DiscordRole[] | undefined
-let lastFetchedRanks: number | undefined*/
+let ranksCache: DiscordRole[] | undefined
+let lastFetchedRanks: number | undefined
 
 export async function getDiscordRanksAsync() {
-  /*const now = new Date()
+  const now = new Date()
   if (lastFetchedRanks && (now.valueOf() - lastFetchedRanks) / 1000 < 60) {
     return ranksCache!
-  }*/
+  }
 
   const response = await fetch(apiUrl + '/roles', {
     headers: { Authorization: 'Bot ' + botToken },
@@ -23,8 +23,8 @@ export async function getDiscordRanksAsync() {
 
   const roles = (await response.json()) as DiscordRole[]
   const ranks = roles.filter((role) => role.name.endsWith('Soldier') || role.name.endsWith('Demo'))
-  /*lastFetchedRanks = now.valueOf()
-  ranksCache = ranks*/
+  lastFetchedRanks = now.valueOf()
+  ranksCache = ranks
   return ranks
 }
 

@@ -5,6 +5,7 @@ import { api } from '@/api'
 import { isActiveTradeOffer } from '@/utils'
 
 import { useAppStore } from './app'
+import { load } from './helpers'
 
 import type { PrizeTradeOffer } from '@jf-prize-bot/schema'
 
@@ -31,10 +32,7 @@ export const useTradeOfferStore = defineStore('tradeOffer', () => {
   }
 
   async function loadAsync() {
-    const { addIsLoading, removeIsLoading } = useAppStore()
-    addIsLoading(at)
-    tradeOffers.value = await api.getTradeOffers()
-    removeIsLoading(at)
+    return load(at, tradeOffers, api.getTradeOffers)
   }
 
   async function clearHistoryAsync() {

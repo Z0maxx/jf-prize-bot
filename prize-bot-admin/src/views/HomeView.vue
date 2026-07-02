@@ -76,7 +76,6 @@ function getCompletedBountyGroups(prize: Prize) {
     completedBountyGroup.completedBounties.push(`${name} (${keys} keys)`)
   })
 
-  console.log(completedBountyGroups)
   return Array.from(completedBountyGroups.values())
 }
 </script>
