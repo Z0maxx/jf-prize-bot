@@ -1,49 +1,18 @@
 <script setup lang="ts">
-import { sendPrizesKnownError } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { watch } from 'vue'
 
-import { api } from '@/api'
+import { usePrizeSender } from '@/composables/prizeSender'
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
-import { useTradeOfferStore } from '@/stores/tradeOffer'
+
+const { sendPrizesAsync } = usePrizeSender()
 
 const appStore = useAppStore()
-const { setIsSendingPrizes } = appStore
-const { isLoggedIn, isSendingPrizes, hasChanges } = storeToRefs(appStore)
+const { isSendingPrizes, hasChanges } = storeToRefs(appStore)
 
 const playerStore = usePlayerStore()
 const prizeStore = usePrizeStore()
-const tradeOfferStore = useTradeOfferStore()
-
-let sendPrizesAfterLogin = false
-
-async function sendPrizesAsync() {
-  setIsSendingPrizes(true)
-  const result = await api.sendPrizes()
-  setIsSendingPrizes(false)
-  if (result.success) {
-    prizeStore.setPrizes([])
-    tradeOfferStore.setTradeOffers(result.tradeOffers!)
-  } else if (result.error === sendPrizesKnownError.notEnoughAvailableKeys) {
-    alert('There are not enough keys available')
-  } else if (result.error === sendPrizesKnownError.itemsNotFound) {
-    alert('Items not found with asset ids:\n' + result.itemsNotFound?.join('\n'))
-  } else if (result.error === sendPrizesKnownError.playersNotFound) {
-    alert('Players not found:\n' + result.playersNotFound?.join('\n'))
-  } else if (result.error === sendPrizesKnownError.itemsInTradeOffer) {
-    alert(
-      'Items are in trade offers already with asset ids:\n' + result.itemsInTradeOffer?.join('\n'),
-    )
-  } else if (result.error === sendPrizesKnownError.hasFailedTradeOffers) {
-    prizeStore.setPrizes(result.failedToSendPrizes!)
-    tradeOfferStore.setTradeOffers(result.tradeOffers!)
-    alert('There are failed trade offers')
-  } else {
-    alert(result.error)
-  }
-}
 
 async function trySendPrizes() {
   if (hasChanges.value.has('Players')) {
@@ -54,21 +23,8 @@ async function trySendPrizes() {
     await prizeStore.saveAsync()
   }
 
-  await appStore.setIsLoggedInAsync()
-  if (!isLoggedIn.value) {
-    appStore.setIsLoginPopupOpened(true)
-    sendPrizesAfterLogin = true
-  } else {
-    sendPrizesAsync()
-  }
+  appStore.setActionAfterLogin(sendPrizesAsync)
 }
-
-watch(isLoggedIn, (newIsLoggedIn) => {
-  if (newIsLoggedIn && sendPrizesAfterLogin) {
-    sendPrizesAfterLogin = false
-    sendPrizesAsync()
-  }
-})
 </script>
 <template>
   <button
