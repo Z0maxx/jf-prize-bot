@@ -3,7 +3,6 @@ import { type Bounty, type Player, type Prize, type UniqueItem } from '@jf-prize
 import { storeToRefs } from 'pinia'
 import { computed, reactive, ref, watch } from 'vue'
 import { onBeforeRouteLeave } from 'vue-router'
-import { b } from 'vue-router/dist/index-BQLwgiyK.js'
 
 import { useAppStore } from '@/stores/app.ts'
 import { useBountyGroupStore } from '@/stores/bountyGroup'
@@ -65,7 +64,10 @@ const isPageLoading = computed(
 )
 
 const isSaveButtonDisabled = computed(
-  () => !hasChanges.value.has(prizeStore.at) || isSaving.value.has(prizeStore.at) || isSendingPrizes.value,
+  () =>
+    !hasChanges.value.has(prizeStore.at) ||
+    isSaving.value.has(prizeStore.at) ||
+    isSendingPrizes.value,
 )
 
 function selectPlayer(discordId: string) {
@@ -120,7 +122,7 @@ watch(
     keys.value = selectedPrize.value.keys
     sortedItems.assignedItems = []
     sortedItems.unassignedItems = []
-    const itemsInLimboAssetIds = new Set(
+    const itemsInTradeOfferIds = new Set(
       newActiveTradeOffers
         .filter((offer) => !!offer.items)
         .flatMap((offer) => offer.items!.map((item) => item.assetId)),
@@ -132,7 +134,7 @@ watch(
         if (assignedItem.discordId === newDiscordId) {
           sortedItems.assignedItems.push(item)
         }
-      } else if (!itemsInLimboAssetIds.has(item.assetId)) {
+      } else if (!itemsInTradeOfferIds.has(item.assetId)) {
         sortedItems.unassignedItems.push(item)
       }
     })
