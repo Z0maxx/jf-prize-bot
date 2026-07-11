@@ -3,12 +3,16 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 import './index.css'
+import { api } from './api.ts'
+
 import App from './App.vue'
 import BountyGroupsView from './views/BountyGroupsView.vue'
 import HomeView from './views/HomeView.vue'
 import PlayersView from './views/PlayersView.vue'
 import PrizesView from './views/PrizesView.vue'
 import TradeOffersView from './views/TradeOffersView.vue'
+
+api.useUrl('http://localhost:6520')
 
 const app = createApp(App)
 

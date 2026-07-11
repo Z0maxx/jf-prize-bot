@@ -1,3 +1,5 @@
+import { useSnackbarStore } from './stores/snackbar'
+
 import type {
   BountyGroup,
   CancelAllTradeOffersResult,
@@ -17,67 +19,67 @@ import type {
   SteamGuardCode,
 } from '@jf-prize-bot/schema'
 
-const url = 'http://localhost:6520'
+let url = ''
+let hadNetworkError = false
+
+async function fetchWithError<T>(...args: Parameters<typeof fetch>): Promise<T> {
+  const resp = await fetch(...args)
+  if (!resp.ok) {
+    const err = new Error(await resp.text())
+    throw err
+  } else {
+    return (await resp.json()) as T
+  }
+}
+
+async function fetchWithAlert<T>(...args: Parameters<typeof fetch>) {
+  const { error } = useSnackbarStore()
+  try {
+    return await fetchWithError<T>(...args)
+  } catch (err) {
+    const message = (err as Error).message
+    if (message !== 'Failed to fetch') {
+      error(message)
+    } else if (!hadNetworkError) {
+      error('Network error')
+      hadNetworkError = true
+    }
+
+    throw err
+  }
+}
 
 async function get<T>(endpoint: string) {
-  const resp = await fetch(url + endpoint)
-  return (await resp.json()) as T
+  return await fetchWithAlert<T>(url + endpoint)
 }
 
 async function dataResultGet<T>(endpoint: string) {
-  const resp = await fetch(url + endpoint)
-  return (await resp.json()) as DataResult<T>
+  return fetchWithAlert<DataResult<T>>(url + endpoint)
 }
 
 async function authPost(endpoint: string, value?: any) {
-  const resp = await fetch(url + endpoint, {
-    method: 'POST',
-    body: value ? JSON.stringify(value) : undefined,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  return (await resp.json()) as SteamAuthActionResult
+  return post<SteamAuthActionResult>(endpoint, value)
 }
 
 async function post<T>(endpoint: string, value?: any) {
-  const resp = await fetch(url + endpoint, {
+  return fetchWithAlert<T>(url + endpoint, {
     method: 'POST',
     body: value ? JSON.stringify(value) : undefined,
     headers: {
       'Content-Type': 'application/json',
     },
   })
-
-  return (await resp.json()) as T
 }
 
 async function resultPost(endpoint: string, value?: any) {
-  const resp = await fetch(url + endpoint, {
-    method: 'POST',
-    body: value ? JSON.stringify(value) : undefined,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  return (await resp.json()) as Result
-}
-
-async function dataResultPost<T>(endpoint: string, value?: any) {
-  const resp = await fetch(url + endpoint, {
-    method: 'POST',
-    body: value ? JSON.stringify(value) : undefined,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  })
-
-  return (await resp.json()) as DataResult<T>
+  return post<Result>(endpoint, value)
 }
 
 export const api = {
+  useUrl(newUrl: string) {
+    url = newUrl
+  },
+
   reload() {
     return get<ReloadResult>('/reload')
   },
