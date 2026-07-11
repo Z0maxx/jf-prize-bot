@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 
 import { useAppStore } from './stores/app.ts'
 import { useBountyGroupStore } from './stores/bountyGroup.ts'
@@ -13,9 +13,10 @@ import LoginPopup from './components/LoginPopup.vue'
 import NavbarButton from './components/NavbarButton.vue'
 import ReloadButton from './components/ReloadButton.vue'
 import SendPrizesButton from './components/SendPrizesButton.vue'
+import Snackbar from './components/Snackbar.vue'
 
 const appStore = useAppStore()
-const { hasChanges } = storeToRefs(appStore)
+const { hasChanges, isLoggedIn, actionAfterLogin } = storeToRefs(appStore)
 
 const playerStore = usePlayerStore()
 const prizeStore = usePrizeStore()
@@ -36,11 +37,28 @@ onMounted(async () => {
   appStore.setIsLoggedInAsync()
 })
 
+watch([actionAfterLogin, isLoggedIn], async () => {
+  const action = actionAfterLogin.value
+  if (action) {
+    if (await appStore.setIsLoggedInAsync()) {
+      action()
+      appStore.setActionAfterLogin(null)
+    } else {
+      appStore.setIsLoginPopupOpened(true)
+    }
+  }
+})
+
 window.addEventListener('beforeunload', (e) => {
   if (hasChanges.value.size > 0) {
     e.preventDefault()
     e.returnValue = true
   }
+})
+
+window.addEventListener('error', (err) => {
+  console.log(err)
+  alert(err.message)
 })
 </script>
 <template>
@@ -68,4 +86,5 @@ window.addEventListener('beforeunload', (e) => {
     <RouterView />
   </main>
   <LoginPopup />
+  <Snackbar />
 </template>
