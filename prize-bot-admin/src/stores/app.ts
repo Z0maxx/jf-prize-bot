@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, readonly, ref } from 'vue'
+import { reactive, ref } from 'vue'
 
 import { api } from '@/api'
 
@@ -11,9 +11,11 @@ export const useAppStore = defineStore('appStore', () => {
   const isLoading = reactive(new Set<string>())
   const isSaving = reactive(new Set<string>())
   const hasChanges = reactive(new Set<string>())
+  const actionAfterLogin = ref<(() => void) | null>(null)
 
   async function setIsLoggedInAsync() {
     isLoggedIn.value = await api.isLoggedIn()
+    return isLoggedIn.value
   }
 
   function setIsLoginPopupOpened(state: boolean) {
@@ -26,6 +28,10 @@ export const useAppStore = defineStore('appStore', () => {
 
   function setIsSendingPrizes(state: boolean) {
     isSendingPrizes.value = state
+  }
+
+  function setActionAfterLogin(action: (() => void) | null) {
+    actionAfterLogin.value = action
   }
 
   function addIsLoading(at: string) {
@@ -60,6 +66,7 @@ export const useAppStore = defineStore('appStore', () => {
     isLoading,
     isSaving,
     hasChanges,
+    actionAfterLogin,
     setIsLoggedInAsync,
     setIsLoginPopupOpened,
     setIsReloading,
@@ -70,5 +77,6 @@ export const useAppStore = defineStore('appStore', () => {
     removeIsSaving,
     addHasChanges,
     removeHasChanges,
+    setActionAfterLogin,
   }
 })
