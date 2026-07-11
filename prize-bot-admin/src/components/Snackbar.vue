@@ -42,7 +42,7 @@ watch(message, (newMessage) => {
     }"
   >
     <div v-if="currentMessage" class="items-top flex gap-4" :class="colors[currentMessage.type]">
-      <span class="font-medium" v-html="currentMessage.text.replaceAll('\n', '<br>')"></span>
+      <span class="font-medium" v-html="currentMessage.text.replace(/\n/g, '<br>')"></span>
       <button
         class="flex size-6 items-center justify-center rounded-full bg-mist-600 hover:bg-mist-700"
         @click="close"
