@@ -87,6 +87,7 @@ watch(isPageLoading, () => {
 watch(
   players,
   (newPlayers) => {
+    foundPlayers.value = players.value
     const hasDifferentTradeUrl = newPlayers.filter(
       (player) => (player.tradeUrl ?? '') !== (originalTradeUrls.get(player.discordId) ?? ''),
     )
