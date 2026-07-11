@@ -5,10 +5,11 @@ import {
   type PrizeTradeOfferState,
 } from '@jf-prize-bot/schema'
 import { storeToRefs } from 'pinia'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 
 import { useAppStore } from '@/stores/app'
 import { usePlayerStore } from '@/stores/player'
+import { useSnackbarStore } from '@/stores/snackbar'
 import { useTradeOfferStore } from '@/stores/tradeOffer'
 import { isActiveTradeOffer } from '@/utils'
 
@@ -17,7 +18,7 @@ import LoadingPage from '@/components/LoadingPage.vue'
 import SubmitButton from '@/components/SubmitButton.vue'
 
 const appStore = useAppStore()
-const { isLoggedIn, isLoading } = storeToRefs(appStore)
+const { isLoading } = storeToRefs(appStore)
 
 const tradeOfferStore = useTradeOfferStore()
 const {
@@ -31,6 +32,8 @@ const {
 
 const playerStore = usePlayerStore()
 const { players } = storeToRefs(playerStore)
+
+const { success, warning, error } = useSnackbarStore()
 
 const isPageLoading = computed(
   () =>
@@ -54,10 +57,6 @@ const stateColors: Record<PrizeTradeOfferState, string> = {
   unknown: 'bg-white',
 }
 
-let cancelAfterLogin: PrizeTradeOffer | null = null
-let cancelAllAfterLogin = false
-let clearHistoryAfterLogin = false
-
 function getPlayerName(offer: PrizeTradeOffer) {
   return players.value.find((player) => player.discordId === offer.discordId)!.discordFullName
 }
@@ -70,21 +69,16 @@ function setState(result: CancelTradeOfferResult) {
 async function cancel(offer: PrizeTradeOffer) {
   const result = await tradeOfferStore.cancelAsync(offer)
   setState(result)
-  if (!result.success) {
-    alert('Failed to cancel trade offer: ' + result.error)
-    return
+  if (result.success) {
+    success('Canceled trade offer')
+  } else {
+    error('Failed to cancel trade offer: ' + result.error)
   }
 }
 
 async function tryCancel(offer: PrizeTradeOffer) {
   if (confirm('Are you sure you want to cancel this trade offer?')) {
-    await appStore.setIsLoggedInAsync()
-    if (!isLoggedIn.value) {
-      appStore.setIsLoginPopupOpened(true)
-      cancelAfterLogin = offer
-    } else {
-      cancel(offer)
-    }
+    appStore.setActionAfterLogin(() => cancel(offer))
   }
 }
 
@@ -98,22 +92,18 @@ async function cancelAll() {
       .map((result) => `${result.tradeOfferId}: ${result.error}`)
 
     if (failed.length > 0) {
-      alert('Failed to cancel trade offers with ids:\n' + failed.join('\n'))
+      warning('Failed to cancel trade offers with ids:\n' + failed.join('\n'))
+    } else {
+      success('Canceled all trade offers')
     }
   } else {
-    alert('Failed to cancel trade offers: ' + result.error)
+    error('Failed to cancel trade offers: ' + result.error)
   }
 }
 
 async function tryCancelAll() {
   if (confirm('Are you sure you want to cancel all trade offers?')) {
-    await appStore.setIsLoggedInAsync()
-    if (!isLoggedIn.value) {
-      appStore.setIsLoginPopupOpened(true)
-      cancelAllAfterLogin = true
-    } else {
-      cancelAll()
-    }
+    appStore.setActionAfterLogin(cancelAll)
   }
 }
 
@@ -121,43 +111,17 @@ async function clearHistory() {
   const result = await tradeOfferStore.clearHistoryAsync()
   if (result.success) {
     tradeOfferStore.setTradeOffers(result.activeTradeOffers!)
+    success('Cleared history')
   } else {
-    alert('Failed to fetch active trade offers: ' + result.error)
+    error('Failed to fetch active trade offers: ' + result.error)
   }
 }
 
 async function tryClearHistory() {
   if (confirm('Are you sure you want to clear inactive trade offer history?')) {
-    await appStore.setIsLoggedInAsync()
-    if (!isLoggedIn.value) {
-      appStore.setIsLoginPopupOpened(true)
-      clearHistoryAfterLogin = true
-    } else {
-      clearHistory()
-    }
+    appStore.setActionAfterLogin(clearHistory)
   }
 }
-
-watch(isLoggedIn, (newIsLoggedIn) => {
-  if (!newIsLoggedIn) {
-    return
-  }
-
-  if (cancelAfterLogin) {
-    cancel(cancelAfterLogin)
-    cancelAfterLogin = null
-  }
-
-  if (cancelAllAfterLogin) {
-    cancelAllAfterLogin = false
-    cancelAll()
-  }
-
-  if (clearHistoryAfterLogin) {
-    clearHistoryAfterLogin = false
-    clearHistory()
-  }
-})
 </script>
 <template>
   <LoadingPage v-if="isPageLoading" :name="tradeOfferStore.at" />
@@ -203,7 +167,7 @@ watch(isLoggedIn, (newIsLoggedIn) => {
         <div v-if="offer.error">{{ offer.error }}</div>
       </div>
       <h3 v-if="offer.keys">Keys: {{ offer.keys }}</h3>
-      <template v-if="offer.items">
+      <template v-if="offer.items && offer.items.length > 0">
         <div class="flex flex-col items-center">
           <h3>Sent Items</h3>
           <div
@@ -218,6 +182,7 @@ watch(isLoggedIn, (newIsLoggedIn) => {
           </div>
         </div>
       </template>
+      <h3 v-else>No items sent</h3>
     </div>
   </template>
 </template>
