@@ -61,9 +61,13 @@ export async function getPlayersFromDiscordAsync(savedPlayers: Player[]) {
           .filter((roleId) => ranksMap.has(roleId))
           .map((roleId) => ranksMap.get(roleId)!)
 
+        const discordFullName = member.user.global_name ?
+          `${member.user.global_name} (${member.user.username})` :
+          member.user.username
+
         return {
           discordId: member.user.id,
-          discordFullName: `${member.user.global_name} (${member.user.username})`,
+          discordFullName,
           tradeUrl: savedPlayers.find((player) => player.discordId === member.user.id)?.tradeUrl,
           discordRanks,
         } as Player
