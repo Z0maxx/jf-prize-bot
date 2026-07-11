@@ -1,49 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { watch } from 'vue'
 
-import { api } from '@/api'
+import { useReloader } from '@/composables/reloader'
 import { useAppStore } from '@/stores/app'
-import { useInventoryStore } from '@/stores/inventory'
-import { useTradeOfferStore } from '@/stores/tradeOffer'
+
+const { reloadAsync } = useReloader()
 
 const appStore = useAppStore()
-const { setIsReloading } = appStore
-const { isReloading, isLoggedIn } = storeToRefs(appStore)
+const { setActionAfterLogin } = appStore
+const { isReloading } = storeToRefs(appStore)
 
-const inventoryStore = useInventoryStore()
-const tradeOfferStore = useTradeOfferStore()
-
-let reloadAfterLogin = false
-
-async function reload() {
-  setIsReloading(true)
-  const result = await api.reload()
-  setIsReloading(false)
-  if (result.success) {
-    inventoryStore.setInventory(result.inventory!)
-    tradeOfferStore.setTradeOffers(result.tradeOffers!)
-  } else {
-    alert(result.error)
-  }
+function tryReload() {
+  setActionAfterLogin(reloadAsync)
 }
-
-async function tryReload() {
-  await appStore.setIsLoggedInAsync()
-  if (!isLoggedIn.value) {
-    appStore.setIsLoginPopupOpened(true)
-    reloadAfterLogin = true
-  } else {
-    reload()
-  }
-}
-
-watch(isLoggedIn, (newIsLoggedIn) => {
-  if (newIsLoggedIn && reloadAfterLogin) {
-    reloadAfterLogin = false
-    reload()
-  }
-})
 </script>
 <template>
   <button
