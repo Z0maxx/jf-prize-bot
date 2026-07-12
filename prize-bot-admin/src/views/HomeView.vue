@@ -9,7 +9,7 @@ import { usePlayerStore } from '@/stores/player'
 import { usePrizeStore } from '@/stores/prize'
 import { getRankColorHex } from '@/utils'
 
-import type { BountyGroup, DiscordRank, Player, Prize } from '@jf-prize-bot/schema'
+import type { DiscordRank, Prize } from '@jf-prize-bot/schema'
 
 import DisplayItem from '@/components/DisplayItem.vue'
 import KeyStock from '@/components/KeyStock.vue'
@@ -58,6 +58,7 @@ function getCompletedBountyGroups(prize: Prize) {
     string,
     { discordRank: DiscordRank; completedBounties: string[] }
   >()
+
   prize.completedBountyIds.forEach((bountyId) => {
     const { discordRank, bounties } = bountyGroups.value.find((group) =>
       group.bounties.some((p) => p.id === bountyId),
@@ -73,7 +74,7 @@ function getCompletedBountyGroups(prize: Prize) {
       completedBountyGroups.set(discordRank.name, completedBountyGroup)
     }
 
-    completedBountyGroup.completedBounties.push(`${name} (${keys} keys)`)
+    completedBountyGroup.completedBounties.push(`${name} (${keys} ${keys > 1 ? 'keys' : 'key'})`)
   })
 
   return Array.from(completedBountyGroups.values())
@@ -98,12 +99,12 @@ function getCompletedBountyGroups(prize: Prize) {
               >
                 <div class="font-bold">{{ group.discordRank.name }}</div>
                 <div class="flex flex-col">
-                  <button
+                  <span
                     v-for="bounty in group.completedBounties"
-                    class="after:content-['✔'] hover:bg-slate-600"
+                    class="flex justify-between after:content-['✔'] hover:bg-slate-600"
                   >
                     {{ bounty }}
-                  </button>
+                  </span>
                 </div>
               </div>
             </div>
