@@ -94,7 +94,7 @@ function tryRemoveItemFromPrize(item: UniqueItem) {
 }
 
 function getBountyGroup() {
-  if (!selectedPlayer.value) return
+  if (!selectedPlayer.value) return []
 
   return selectedPlayer.value.discordRanks.map(
     (rank) => bountyGroups.value.find((prize) => prize.discordRank.name === rank.name)!,
@@ -155,8 +155,23 @@ watch(keys, (newKeys) => {
     keys.value = parseInt(newKeys.toFixed(0))
   }
 
-  if (selectedPrize.value.keys !== newKeys) {
-    setKeysForPrize(selectedPrize.value, newKeys.toString() === '' ? 0 : newKeys)
+  if (selectedPrize.value.keys !== keys.value) {
+    setKeysForPrize(selectedPrize.value, keys.value)
+  }
+
+  const completedBountyIds = selectedPrize.value.completedBountyIds
+  if (completedBountyIds.length > 0) {
+    const completedBountyKeys = getBountyGroup()
+      .flatMap((group) =>
+        group.bounties
+          .filter((bounty) => completedBountyIds.includes(bounty.id))
+          .reduce((keys, bounty) => keys + bounty.keys, 0),
+      )
+      .reduce((keys, key) => keys + key)
+
+    if (keys.value < completedBountyKeys) {
+      prizeStore.removeAllBountiesFromPrize(selectedPrize.value)
+    }
   }
 })
 
@@ -205,13 +220,13 @@ onBeforeRouteLeave(() => {
             <button
               v-for="bounty in group.bounties"
               @click="prizeStore.toggleBountyForPrize(selectedPrize, bounty)"
-              class="after:content-['✔'] hover:bg-slate-600"
+              class="flex justify-between text-left after:content-['✔'] hover:bg-slate-600"
               :class="{
                 'after:opacity-100': hasCompletedBounty(bounty),
                 'after:opacity-0': !hasCompletedBounty(bounty),
               }"
             >
-              {{ bounty.name }} ({{ bounty.keys }} keys)
+              {{ bounty.name }} ({{ bounty.keys }} {{ bounty.keys > 1 ? 'keys' : 'key' }})
             </button>
           </div>
         </div>
