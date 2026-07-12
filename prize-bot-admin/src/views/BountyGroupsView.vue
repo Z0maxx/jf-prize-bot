@@ -88,7 +88,7 @@ function trySave() {
 function tryDelete() {
   if (confirm(`Are you sure you want to delete all Bounties?`)) {
     bountyGroupStore.deleteBountiesAsync()
-    prizeStore.removeAllBountiesFromPrizesAsync()
+    prizeStore.removeAllBountiesFromPrizes()
   }
 }
 

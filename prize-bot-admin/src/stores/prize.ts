@@ -78,7 +78,7 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     }
   }
 
-  function removeAllBountiesFromPrizesAsync() {
+  function removeAllBountiesFromPrizes() {
     const { addHasChanges } = useAppStore()
     prizes.value.forEach((prize) => {
       if (prize.completedBountyIds.length > 0) {
@@ -97,6 +97,15 @@ export const usePrizeStore = defineStore('prizeStore', () => {
         addHasChanges(at)
       }
     })
+  }
+
+  function removeAllBountiesFromPrize(prize: Prize) {
+    const { addHasChanges } = useAppStore()
+    const idx = prizes.value.findIndex((p) => p.discordId === prize.discordId)
+    if (idx > -1) {
+      prizes.value[idx]!.completedBountyIds = []
+      addHasChanges(at)
+    }
   }
 
   function loadAsync() {
@@ -130,7 +139,8 @@ export const usePrizeStore = defineStore('prizeStore', () => {
     removePrizeForPlayer,
     toggleBountyForPrize,
     removeBountyFromPrizes,
-    removeAllBountiesFromPrizesAsync,
+    removeAllBountiesFromPrizes,
+    removeAllBountiesFromPrize,
     loadAsync,
     saveAsync,
   }
